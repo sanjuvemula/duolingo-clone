@@ -7,7 +7,9 @@ import { formatCorrectAnswer, isAnswerValid } from "@/lib/exercise";
 import { LessonHeader } from "./LessonHeader";
 import { FeedbackBar } from "./FeedbackBar";
 import { MultipleChoiceExercise } from "./MultipleChoiceExercise";
-import { TranslateExercise } from "./TranslateExercise";
+import { WordBankExercise } from "./WordBankExercise";
+import { FillBlankExercise } from "./FillBlankExercise";
+import { TypeAnswerExercise } from "./TypeAnswerExercise";
 import { MatchExercise } from "./MatchExercise";
 import { LessonCompleteScreen } from "./LessonCompleteScreen";
 import { LessonFailedScreen } from "./LessonFailedScreen";
@@ -16,7 +18,13 @@ interface LessonPlayerScreenProps {
   lessonId: number;
 }
 
-const KNOWN_EXERCISE_TYPES = ["multiple_choice", "translate", "match"];
+const KNOWN_EXERCISE_TYPES = [
+  "multiple_choice",
+  "word_bank",
+  "match",
+  "fill_blank",
+  "type_answer",
+];
 
 /** Orchestrates one full run through GET /lessons/{id} -> repeated
  * POST /exercises/{id}/submit -> POST /lessons/{id}/complete. All the
@@ -40,7 +48,7 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
         <p className="max-w-sm text-sm text-ink-soft">{player.error}</p>
         <Link
           href="/"
-          className="rounded-full bg-celadon px-5 py-2 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+          className="rounded-full bg-green px-5 py-2 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
         >
           Back to path
         </Link>
@@ -98,7 +106,12 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
       />
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-8">
-        <h1 className="font-display text-xl font-bold text-ink">{exercise.question}</h1>
+        {/* fill_blank renders the prompt itself, with the chosen word slotted
+            into the gap, so it gets an instruction line instead of the raw
+            question to avoid showing the sentence twice. */}
+        <h1 className="font-display text-xl font-bold text-ink">
+          {exercise.type === "fill_blank" ? "Fill in the blank" : exercise.question}
+        </h1>
 
         {exercise.type === "multiple_choice" && Array.isArray(exercise.options) && (
           <MultipleChoiceExercise
@@ -115,8 +128,34 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
           />
         )}
 
-        {exercise.type === "translate" && (
-          <TranslateExercise
+        {exercise.type === "word_bank" && Array.isArray(exercise.options) && (
+          <WordBankExercise
+            key={exercise.id}
+            tiles={exercise.options as string[]}
+            checked={player.checked}
+            correct={player.lastResult?.correct ?? null}
+            onChange={player.selectAnswer}
+          />
+        )}
+
+        {exercise.type === "fill_blank" && Array.isArray(exercise.options) && (
+          <FillBlankExercise
+            key={exercise.id}
+            question={exercise.question}
+            options={exercise.options as string[]}
+            selected={player.selectedAnswer as string | null}
+            checked={player.checked}
+            correctAnswer={
+              player.checked && player.lastResult
+                ? (player.lastResult.correct_answer as string)
+                : null
+            }
+            onSelect={player.selectAnswer}
+          />
+        )}
+
+        {exercise.type === "type_answer" && (
+          <TypeAnswerExercise
             key={exercise.id}
             value={(player.selectedAnswer as string | null) ?? ""}
             checked={player.checked}

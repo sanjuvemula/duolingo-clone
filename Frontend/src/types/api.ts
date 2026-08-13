@@ -27,6 +27,10 @@ export interface UserResponse {
   /** Countdown to the next regenerated heart; null when hearts are full. */
   seconds_until_next_heart: number | null;
   heart_refill_gem_cost: number;
+  /** XP earned today only — reads 0 once the stored tally belongs to an
+   * earlier day, so the daily goal resets without a scheduled job. */
+  xp_today: number;
+  daily_xp_goal: number;
 }
 
 /** Matches schemas.HeartsRefillResponse — POST /users/{id}/hearts/refill. */
@@ -45,6 +49,8 @@ export interface SkillWithProgress {
   unit_id: number;
   status: SkillStatus;
   crowns: number;
+  /** Denominator for the crown progress ring — total lessons in this skill. */
+  lesson_count: number;
   /** First lesson (by order) for this skill — resolved server-side from
    * the Skill→Lesson relationship. Null only if a skill has no lessons. */
   lesson_id: number | null;
@@ -79,7 +85,13 @@ export interface CourseWithUnits {
  * `string` rather than a closed union so a backend-added type doesn't
  * become a frontend compile error. Components branch on the known three and
  * render a fallback message for anything else (see LessonPlayerScreen). */
-export type ExerciseType = "multiple_choice" | "translate" | "match" | string;
+export type ExerciseType =
+  | "multiple_choice"
+  | "word_bank"
+  | "match"
+  | "fill_blank"
+  | "type_answer"
+  | string;
 
 /** Matches schemas.ExercisePublic. `correct_answer` is deliberately absent
  * from this type — the backend excludes it from this response so the
@@ -90,9 +102,10 @@ export interface ExercisePublic {
   lesson_id: number;
   type: ExerciseType;
   question: string;
-  /** multiple_choice -> list of choice strings; match -> list of
-   * [left, right] pairs to be re-matched by the user; translate -> null
-   * (free-text input, nothing to render as choices). */
+  /** multiple_choice / fill_blank -> list of choice strings; word_bank ->
+   * list of word tiles to tap in order; match -> list of [left, right] pairs
+   * to be re-matched by the user; type_answer -> null (free-text input,
+   * nothing to render as choices). */
   options: string[] | [string, string][] | null;
   order: number;
 }
@@ -111,7 +124,8 @@ export interface LessonWithExercises {
 export interface ExerciseSubmitResponse {
   correct: boolean;
   /** Same shape rule as ExercisePublic.options: string for
-   * multiple_choice/translate, [string,string][] for match. Only present
+   * multiple_choice/fill_blank/type_answer/word_bank, [string,string][] for
+   * match. Only present
    * in this response (not ExercisePublic) since it's safe to reveal once
    * the user has already submitted an answer. */
   correct_answer: unknown;

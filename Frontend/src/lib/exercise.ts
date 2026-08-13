@@ -3,11 +3,13 @@
  * "what counts as a submittable answer for this exercise type" and "how do
  * we display the correct answer after a wrong guess" live in one place
  * each, instead of being duplicated inside MultipleChoiceExercise /
- * TranslateExercise / MatchExercise.
+ * WordBankExercise / MatchExercise / FillBlankExercise / TypeAnswerExercise.
  *
  * This deliberately mirrors (but does not duplicate) the shape rules from
- * Backend/app/services/exercise_service.py's check_answer: multiple_choice
- * and translate are plain strings, match is a list of [left, right] pairs.
+ * Backend/app/services/exercise_service.py's check_answer:
+ *   multiple_choice / fill_blank / type_answer -> plain string
+ *   word_bank                                   -> ordered list of words
+ *   match                                       -> list of [left, right] pairs
  * The actual correctness check always happens server-side — this file only
  * decides when the Check button may be pressed and how to render an
  * already-known answer, never whether an answer is right.
@@ -20,10 +22,17 @@ import type { ExercisePublic } from "@/types/api";
 export function isAnswerValid(exercise: ExercisePublic, answer: unknown): boolean {
   switch (exercise.type) {
     case "multiple_choice":
+    case "fill_blank":
       return typeof answer === "string" && answer.length > 0;
 
-    case "translate":
+    case "type_answer":
       return typeof answer === "string" && answer.trim().length > 0;
+
+    case "word_bank":
+      // Any non-empty sentence is submittable — the learner is allowed to
+      // check a partial or wrongly-ordered answer and lose a heart for it,
+      // exactly as in Duolingo. Only "nothing tapped yet" blocks the button.
+      return Array.isArray(answer) && answer.length > 0;
 
     case "match": {
       // A match answer is only valid once every pair on screen has been
@@ -56,7 +65,13 @@ export function formatCorrectAnswer(exercise: ExercisePublic, correctAnswer: unk
     return correctAnswer;
   }
 
-  // Shouldn't happen for the three P0 exercise types, but avoids rendering
-  // "[object Object]" if an unexpected shape ever shows up.
+  // word_bank answers are stored as a sentence string, but tolerate a list
+  // shape too rather than rendering a raw JSON array at the learner.
+  if (Array.isArray(correctAnswer)) {
+    return correctAnswer.join(" ");
+  }
+
+  // Shouldn't happen for the five supported exercise types, but avoids
+  // rendering "[object Object]" if an unexpected shape ever shows up.
   return JSON.stringify(correctAnswer);
 }
