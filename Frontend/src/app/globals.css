@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/*
+ * Palette grounded in the course content (Korean) rather than a generic
+ * SaaS default: warm hanji-paper background, celadon green for progress
+ * (the path a learner has walked), indigo for structure (unit banners),
+ * gold for the "currently active" node and XP. Cinnabar red is reserved
+ * for hearts only, so it reads as a resource, not a brand accent.
+ */
+:root {
+  --paper: #faf6ec;
+  --paper-raised: #ffffff;
+  --ink: #241f1a;
+  --ink-soft: #6b6154;
+
+  --celadon: #2f6e52;
+  --celadon-light: #e3efe7;
+
+  --indigo: #2c4a6e;
+  --indigo-light: #e6ecf3;
+
+  --gold: #d9a521;
+  --gold-light: #faf0d8;
+
+  --stone: #b8b2a6;
+  --stone-light: #ece7dc;
+
+  --cinnabar: #c1432e;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-celadon: var(--celadon);
+  --color-celadon-light: var(--celadon-light);
+  --color-indigo: var(--indigo);
+  --color-indigo-light: var(--indigo-light);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-stone: var(--stone);
+  --color-stone-light: var(--stone-light);
+  --color-cinnabar: var(--cinnabar);
+  --font-display: var(--font-baloo);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Used by SkillNode for a locked-skill click — a quick "no" shake instead
+   of a silent no-op, so the click still feels acknowledged. */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
