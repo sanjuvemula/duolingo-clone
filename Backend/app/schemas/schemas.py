@@ -113,6 +113,16 @@ class LessonWithExercises(LessonResponse):
     exercises: list[ExercisePublic] = []
 
 
+class LessonCompleteResponse(BaseModel):
+    lesson_id: int
+    skill_id: int
+    crowns: int
+    skill_status: str
+    xp_total: int
+    hearts: int
+    newly_unlocked_skill_id: Optional[int] = None
+
+
 # ---------------------------------------------------------------------------
 # UserProgress
 # ---------------------------------------------------------------------------
