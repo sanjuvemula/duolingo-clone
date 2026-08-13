@@ -75,7 +75,7 @@ export function HeartsRefill({
         type="button"
         onClick={handleRefill}
         disabled={!affordable || refilling}
-        className="flex items-center gap-2 rounded-full bg-celadon px-6 py-3 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex items-center gap-2 rounded-full bg-green px-6 py-3 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <HeartIcon size={18} />
         {refilling ? "Refilling…" : "Refill hearts"}
@@ -98,7 +98,7 @@ export function HeartsRefill({
       )}
 
       {error && (
-        <p className="text-xs font-bold text-cinnabar" role="alert">
+        <p className="text-xs font-bold text-red" role="alert">
           {error}
         </p>
       )}

@@ -25,7 +25,7 @@ export function LessonFailedScreen({
       <div
         className="flex h-20 w-20 items-center justify-center rounded-full text-white shadow-md"
         style={{
-          background: "var(--cinnabar)",
+          background: "var(--red)",
           animation: "celebrate-in 0.5s ease-out both",
         }}
       >

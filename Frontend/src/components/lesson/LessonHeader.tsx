@@ -45,7 +45,7 @@ export function LessonHeader({ current, total, hearts }: LessonHeaderProps) {
           aria-valuemax={total}
         >
           <div
-            className="h-full rounded-full bg-celadon transition-[width] duration-300 ease-out"
+            className="h-full rounded-full bg-green transition-[width] duration-300 ease-out"
             style={{ width: `${progress * 100}%` }}
           />
         </div>
@@ -56,7 +56,7 @@ export function LessonHeader({ current, total, hearts }: LessonHeaderProps) {
           aria-label={`${hearts} hearts remaining`}
           style={pulsing ? { animation: "heart-pulse 0.5s ease-out" } : undefined}
         >
-          <span style={{ color: "var(--cinnabar)" }}>
+          <span style={{ color: "var(--red)" }}>
             <HeartIcon size={20} />
           </span>
           {hearts}

@@ -38,21 +38,32 @@ export function SkillNode({ skill, offsetX }: SkillNodeProps) {
   const isCompleted = skill.status === "completed";
   const isCurrent = skill.status === "available";
 
-  const fillColor = isCompleted
-    ? "var(--celadon)"
-    : isCurrent
-      ? "var(--gold)"
-      : "var(--stone)";
   const trackColor = isCompleted
-    ? "var(--celadon-light)"
+    ? "var(--gold-light)"
     : isCurrent
-      ? "var(--gold-light)"
+      ? "var(--green-light)"
       : "var(--stone-light)";
-  // Crown progress needs a lesson count, which isn't on this schema (see
-  // docstring). Completed skills show a full ring; everyone else shows an
-  // empty one — a real fraction can replace this once the lesson count is
-  // available on the tree response.
-  const progress = isCompleted ? 1 : 0;
+  const ringColor = isCompleted
+    ? "var(--gold)"
+    : isCurrent
+      ? "var(--green)"
+      : "var(--stone)";
+
+  // Real crown fraction: the tree response carries crowns earned and the
+  // skill's lesson count, so a part-finished skill shows a part-filled ring
+  // rather than the all-or-nothing placeholder this used to render.
+  const progress =
+    skill.lesson_count > 0
+      ? Math.min(skill.crowns / skill.lesson_count, 1)
+      : isCompleted
+        ? 1
+        : 0;
+
+  const nodeClass = isLocked
+    ? "node node-locked"
+    : isCompleted
+      ? "node node-complete"
+      : "node node-available";
 
   return (
     <div
@@ -60,51 +71,39 @@ export function SkillNode({ skill, offsetX }: SkillNodeProps) {
       style={{ transform: `translateX(${offsetX}px)` }}
     >
       {isCurrent && (
-        <span className="absolute -top-9 rounded-full bg-gold px-3 py-1 font-display text-xs font-bold text-white shadow-sm animate-bounce">
+        <span className="absolute -top-10 rounded-xl border-2 border-stone-light bg-white px-3 py-1 font-display text-xs font-extrabold tracking-wide text-green shadow-sm animate-bounce">
           START
         </span>
       )}
 
-      <button
-        type="button"
-        onClick={handleClick}
-        aria-label={
-          isLocked
-            ? `${skill.title} — locked`
-            : `${skill.title} — ${skill.crowns} crowns`
-        }
-        className={[
-          "group relative outline-none focus-visible:ring-4 focus-visible:ring-indigo/40 rounded-full transition-transform",
-          isLocked ? "cursor-not-allowed" : "cursor-pointer hover:scale-105 active:scale-95",
-          shaking ? "animate-[shake_0.4s]" : "",
-        ].join(" ")}
-      >
+      <div className={shaking ? "animate-[shake_0.4s]" : ""}>
         <ProgressRing
-          size={76}
-          strokeWidth={6}
+          size={88}
+          strokeWidth={7}
           progress={progress}
           trackColor={trackColor}
-          fillColor={fillColor}
+          fillColor={ringColor}
         >
-          <div
-            className="flex h-14 w-14 items-center justify-center rounded-full text-white shadow-md"
-            style={{
-              background: fillColor,
-              ...(isCurrent
-                ? { animation: "celebrate-in 0.5s ease-out both", boxShadow: "0 0 16px var(--gold)" }
-                : {}),
-            }}
+          <button
+            type="button"
+            onClick={handleClick}
+            aria-label={
+              isLocked
+                ? `${skill.title} — locked`
+                : `${skill.title} — ${skill.crowns} of ${skill.lesson_count} crowns`
+            }
+            className={`${nodeClass} outline-none focus-visible:ring-4 focus-visible:ring-blue/40`}
           >
             {isLocked ? (
-              <LockIcon size={26} className="text-white/90" />
+              <LockIcon size={28} />
             ) : isCompleted ? (
-              <CrownIcon size={28} />
+              <CrownIcon size={30} />
             ) : (
-              <PlayIcon size={26} />
+              <PlayIcon size={28} />
             )}
-          </div>
+          </button>
         </ProgressRing>
-      </button>
+      </div>
 
       <span
         className={[

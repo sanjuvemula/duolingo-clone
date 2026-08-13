@@ -4,6 +4,7 @@ import { CURRENT_USER_ID, DEFAULT_COURSE_ID } from "@/lib/constants";
 import { useSkillTree } from "@/hooks/useSkillTree";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
+import { RightRail } from "@/components/layout/RightRail";
 import { SkillPath } from "@/components/learning-path/SkillPath";
 
 export default function Home() {
@@ -33,7 +34,7 @@ export default function Home() {
           <button
             type="button"
             onClick={refetch}
-            className="rounded-full bg-celadon px-5 py-2 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+            className="rounded-full bg-green px-5 py-2 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
           >
             Try again
           </button>
@@ -45,7 +46,12 @@ export default function Home() {
   return (
     <AppShell>
       <TopBar user={user} courseTitle={course.title} />
-      <SkillPath course={course} />
+      <div className="app-content">
+        <div className="app-column">
+          <SkillPath course={course} />
+        </div>
+        <RightRail user={user} />
+      </div>
     </AppShell>
   );
 }

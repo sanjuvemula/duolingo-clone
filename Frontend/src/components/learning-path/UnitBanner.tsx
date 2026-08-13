@@ -4,13 +4,13 @@ interface UnitBannerProps {
 }
 
 /** Full-width unit header, styled like the reference Duolingo green banners.
- * Uses celadon for Unit 1, indigo for Unit 2, etc. to visually distinguish
+ * Uses green for Unit 1, blue for Unit 2, etc. to visually distinguish
  * units while staying within the design palette. */
 const UNIT_COLORS = [
-  { bg: "var(--celadon)", text: "#fff" },
-  { bg: "var(--indigo)", text: "#fff" },
+  { bg: "var(--green)", text: "#fff" },
+  { bg: "var(--blue)", text: "#fff" },
   { bg: "var(--gold)", text: "#fff" },
-  { bg: "var(--cinnabar)", text: "#fff" },
+  { bg: "var(--red)", text: "#fff" },
 ];
 
 export function UnitBanner({ title, order }: UnitBannerProps) {

@@ -57,14 +57,14 @@ export function MatchExercise({ pairs, checked, correct, onComplete }: MatchExer
   function tileStyle(isMatched: boolean, isSelected: boolean) {
     if (checked) {
       return correct
-        ? { borderColor: "var(--celadon)", background: "var(--celadon-light)" }
-        : { borderColor: "var(--cinnabar)", background: "#fbe4df" };
+        ? { borderColor: "var(--green)", background: "var(--green-light)" }
+        : { borderColor: "var(--red)", background: "#fbe4df" };
     }
     if (isMatched) {
-      return { borderColor: "var(--celadon)", background: "var(--celadon-light)" };
+      return { borderColor: "var(--green)", background: "var(--green-light)" };
     }
     if (isSelected) {
-      return { borderColor: "var(--indigo)", background: "var(--indigo-light)" };
+      return { borderColor: "var(--blue)", background: "var(--blue-light)" };
     }
     return { borderColor: "var(--stone-light)", background: "var(--paper-raised)" };
   }

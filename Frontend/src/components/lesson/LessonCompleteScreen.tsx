@@ -16,13 +16,13 @@ interface LessonCompleteScreenProps {
 /** CSS-only confetti particles that drift outward from center on mount. */
 const CONFETTI_PARTICLES = [
   { cx: "-60px", cy: "-80px", color: "var(--gold)", delay: "0s" },
-  { cx: "70px", cy: "-70px", color: "var(--celadon)", delay: "0.1s" },
-  { cx: "-80px", cy: "30px", color: "var(--cinnabar)", delay: "0.15s" },
-  { cx: "60px", cy: "50px", color: "var(--indigo)", delay: "0.05s" },
-  { cx: "-30px", cy: "-90px", color: "var(--celadon)", delay: "0.2s" },
+  { cx: "70px", cy: "-70px", color: "var(--green)", delay: "0.1s" },
+  { cx: "-80px", cy: "30px", color: "var(--red)", delay: "0.15s" },
+  { cx: "60px", cy: "50px", color: "var(--blue)", delay: "0.05s" },
+  { cx: "-30px", cy: "-90px", color: "var(--green)", delay: "0.2s" },
   { cx: "90px", cy: "10px", color: "var(--gold)", delay: "0.08s" },
-  { cx: "20px", cy: "80px", color: "var(--cinnabar)", delay: "0.12s" },
-  { cx: "-70px", cy: "60px", color: "var(--indigo)", delay: "0.18s" },
+  { cx: "20px", cy: "80px", color: "var(--red)", delay: "0.12s" },
+  { cx: "-70px", cy: "60px", color: "var(--blue)", delay: "0.18s" },
 ];
 
 export function LessonCompleteScreen({ result, sessionXp }: LessonCompleteScreenProps) {
@@ -119,7 +119,7 @@ export function LessonCompleteScreen({ result, sessionXp }: LessonCompleteScreen
 
       <Link
         href="/"
-        className="rounded-full bg-celadon px-6 py-3 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+        className="rounded-full bg-green px-6 py-3 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
         style={{
           animation: "celebrate-in 0.5s 0.5s ease-out both",
         }}

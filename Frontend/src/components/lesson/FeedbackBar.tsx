@@ -25,18 +25,13 @@ export function FeedbackBar({
 }: FeedbackBarProps) {
   if (!checked) {
     return (
-      <div className="sticky bottom-0 border-t border-stone-light bg-paper px-6 py-4">
+      <div className="sticky bottom-0 border-t-2 border-stone-light bg-paper px-6 py-5">
         <div className="mx-auto max-w-md">
           <button
             type="button"
             disabled={!canCheck}
             onClick={onCheck}
-            className={[
-              "w-full rounded-2xl py-3 font-display text-sm font-bold uppercase tracking-wide transition active:scale-[0.99]",
-              canCheck
-                ? "bg-celadon text-white hover:brightness-110"
-                : "cursor-not-allowed bg-stone-light text-stone",
-            ].join(" ")}
+            className="btn btn-green w-full"
           >
             {submitting ? "Checking…" : "Check"}
           </button>
@@ -49,32 +44,50 @@ export function FeedbackBar({
 
   return (
     <div
-      className="sticky bottom-0 border-t px-6 py-4"
+      className="sticky bottom-0 px-6 py-5"
       style={{
-        background: isCorrect ? "var(--celadon-light)" : "#fbe4df",
-        borderColor: isCorrect ? "var(--celadon)" : "var(--cinnabar)",
+        background: isCorrect ? "var(--green-light)" : "var(--red-light)",
         animation: "slide-up 0.25s ease-out",
       }}
     >
       <div className="mx-auto flex max-w-md items-center justify-between gap-4">
-        <div>
-          <p
-            className="font-display text-sm font-bold"
-            style={{ color: isCorrect ? "var(--celadon)" : "var(--cinnabar)" }}
+        <div className="flex items-center gap-3">
+          {/* The round icon badge is what makes the bar read as Duolingo's
+              rather than a generic alert strip. */}
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl font-black"
+            style={{
+              background: "#fff",
+              color: isCorrect ? "var(--green-dark)" : "var(--red-dark)",
+            }}
+            aria-hidden="true"
           >
-            {isCorrect ? "Nice!" : "Not quite"}
-          </p>
-          {!isCorrect && correctAnswerText && (
-            <p className="text-xs text-ink-soft">Correct answer: {correctAnswerText}</p>
-          )}
+            {isCorrect ? "✓" : "✕"}
+          </span>
+
+          <div>
+            <p
+              className="font-display text-lg font-extrabold"
+              style={{ color: isCorrect ? "var(--green-dark)" : "var(--red-dark)" }}
+            >
+              {isCorrect ? "Nice!" : "Not quite"}
+            </p>
+            {!isCorrect && correctAnswerText && (
+              <p
+                className="text-sm font-medium"
+                style={{ color: "var(--red-dark)" }}
+              >
+                Correct answer: {correctAnswerText}
+              </p>
+            )}
+          </div>
         </div>
 
         <button
           type="button"
           onClick={onContinue}
           disabled={submitting}
-          className="shrink-0 rounded-2xl px-6 py-3 font-display text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed"
-          style={{ background: isCorrect ? "var(--celadon)" : "var(--cinnabar)" }}
+          className={`btn shrink-0 ${isCorrect ? "btn-green" : "btn-red"}`}
         >
           {submitting ? "…" : "Continue"}
         </button>

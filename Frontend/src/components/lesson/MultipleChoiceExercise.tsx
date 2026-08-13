@@ -32,18 +32,18 @@ export function MultipleChoiceExercise({
         const isWrongSelected = checked && isSelected && !isCorrectOption;
 
         const borderColor = isCorrectOption
-          ? "var(--celadon)"
+          ? "var(--green)"
           : isWrongSelected
-            ? "var(--cinnabar)"
+            ? "var(--red)"
             : isSelected
-              ? "var(--indigo)"
+              ? "var(--blue)"
               : "var(--stone-light)";
         const background = isCorrectOption
-          ? "var(--celadon-light)"
+          ? "var(--green-light)"
           : isWrongSelected
             ? "#fbe4df"
             : isSelected
-              ? "var(--indigo-light)"
+              ? "var(--blue-light)"
               : "var(--paper-raised)";
 
         return (

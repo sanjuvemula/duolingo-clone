@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Mascot } from "@/components/mascot/Mascot";
 
 interface NavItem {
   href: string;
@@ -48,7 +49,7 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <span className="sidebar-logo-icon">🇰🇷</span>
+          <Mascot size={36} />
           <span className="sidebar-logo-text">duolingo</span>
         </div>
         <nav className="sidebar-nav">

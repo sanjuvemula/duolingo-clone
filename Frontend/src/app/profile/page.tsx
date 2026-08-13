@@ -88,7 +88,7 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center gap-3">
           <div
             className="flex h-24 w-24 items-center justify-center rounded-full text-white shadow-lg"
-            style={{ background: "var(--indigo)" }}
+            style={{ background: "var(--blue)" }}
           >
             <span className="font-display text-3xl font-bold">{initials}</span>
           </div>
@@ -112,19 +112,19 @@ export default function ProfilePage() {
             icon={<FlameIcon size={28} />}
             label="Day streak"
             value={user.streak}
-            color="var(--cinnabar)"
+            color="var(--red)"
           />
           <StatCard
             icon={<HeartIcon size={28} />}
             label="Hearts"
             value={user.hearts}
-            color="var(--cinnabar)"
+            color="var(--red)"
           />
           <StatCard
             icon={<GemIcon size={28} />}
             label="Gems"
             value={user.gems}
-            color="var(--indigo)"
+            color="var(--blue)"
           />
         </div>
 

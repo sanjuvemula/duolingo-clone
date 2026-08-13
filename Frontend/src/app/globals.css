@@ -1,47 +1,66 @@
 @import "tailwindcss";
 
 /*
- * Palette grounded in the course content (Korean) rather than a generic
- * SaaS default: warm hanji-paper background, celadon green for progress
- * (the path a learner has walked), indigo for structure (unit banners),
- * gold for the "currently active" node and XP. Cinnabar red is reserved
- * for hearts only, so it reads as a resource, not a brand accent.
+ * Duolingo-style palette: high-saturation accents on a plain white ground,
+ * which is what makes the original read as playful rather than corporate.
+ *
+ * Every accent has a matching -dark shade. That shade is not decoration — it
+ * is the bottom edge of the 3D "bevel" on buttons, tiles and path nodes (see
+ * .btn / .tile / .node below), which is the most recognisable single thing
+ * about Duolingo's UI. Accents are semantic: green = progress and correct,
+ * red = hearts and wrong, gold = XP, blue = gems and structure.
  */
 :root {
-  --paper: #faf6ec;
+  --paper: #ffffff;
   --paper-raised: #ffffff;
-  --ink: #241f1a;
-  --ink-soft: #6b6154;
+  --paper-sunken: #f7f7f7;
+  --ink: #3c3c3c;
+  --ink-soft: #777777;
 
-  --celadon: #2f6e52;
-  --celadon-light: #e3efe7;
+  --green: #58cc02;
+  --green-dark: #46a302;
+  --green-light: #d7ffb8;
 
-  --indigo: #2c4a6e;
-  --indigo-light: #e6ecf3;
+  --blue: #1cb0f6;
+  --blue-dark: #1899d6;
+  --blue-light: #ddf4ff;
 
-  --gold: #d9a521;
-  --gold-light: #faf0d8;
+  --gold: #ffc800;
+  --gold-dark: #e6a800;
+  --gold-light: #fff4d4;
 
-  --stone: #b8b2a6;
-  --stone-light: #ece7dc;
+  --purple: #ce82ff;
+  --purple-dark: #a568cc;
 
-  --cinnabar: #c1432e;
+  --stone: #afafaf;
+  --stone-light: #e5e5e5;
+
+  --red: #ff4b4b;
+  --red-dark: #ea2b2b;
+  --red-light: #ffdfe0;
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
-  --color-celadon: var(--celadon);
-  --color-celadon-light: var(--celadon-light);
-  --color-indigo: var(--indigo);
-  --color-indigo-light: var(--indigo-light);
+  --color-green: var(--green);
+  --color-green-dark: var(--green-dark);
+  --color-green-light: var(--green-light);
+  --color-blue: var(--blue);
+  --color-blue-dark: var(--blue-dark);
+  --color-blue-light: var(--blue-light);
   --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
   --color-gold-light: var(--gold-light);
+  --color-purple: var(--purple);
   --color-stone: var(--stone);
   --color-stone-light: var(--stone-light);
-  --color-cinnabar: var(--cinnabar);
+  --color-red: var(--red);
+  --color-red-dark: var(--red-dark);
+  --color-red-light: var(--red-light);
   --font-display: var(--font-baloo);
   --font-sans: var(--font-inter);
 }
@@ -50,6 +69,154 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* ===================================================================
+   Chunky 3D controls — Duolingo's signature press
+
+   A solid bottom border acts as the button's "thickness". Pressing
+   translates the face down by exactly that thickness and shrinks the
+   border to zero, so the button visibly bottoms out instead of just
+   changing colour. Everything clickable in the app uses this idiom.
+   =================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 16px;
+  border: none;
+  border-bottom: 4px solid transparent;
+  font-family: var(--font-baloo), sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.06s ease, border-width 0.06s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(4px);
+  border-bottom-width: 0;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  background: var(--stone-light);
+  border-bottom-color: var(--stone-light);
+  color: var(--stone);
+}
+
+.btn-green {
+  background: var(--green);
+  border-bottom-color: var(--green-dark);
+  color: #fff;
+}
+
+.btn-blue {
+  background: var(--blue);
+  border-bottom-color: var(--blue-dark);
+  color: #fff;
+}
+
+.btn-red {
+  background: var(--red);
+  border-bottom-color: var(--red-dark);
+  color: #fff;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 2px solid var(--stone-light);
+  border-bottom-width: 4px;
+  color: var(--ink-soft);
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* Word-bank tiles and fill-in-the-blank choices: the same bevel idiom at a
+   smaller, quieter scale. */
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.06s ease, border-width 0.06s ease, filter 0.12s ease;
+}
+
+.tile-raised {
+  background: var(--paper-raised);
+  border: 2px solid var(--stone-light);
+  border-bottom-width: 4px;
+}
+
+.tile-raised:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+.tile-raised:hover:not(:disabled) {
+  background: var(--paper-sunken);
+}
+
+/* A tile already used in the answer line. Kept in the bank as an empty slot
+   so the layout doesn't reflow as words are tapped. */
+.tile-ghost {
+  background: var(--stone-light);
+  border: 2px solid var(--stone-light);
+  border-bottom-width: 4px;
+  color: transparent;
+}
+
+/* Path nodes carry the same bevel so the tree reads as pressable buttons
+   rather than flat status dots. */
+.node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: none;
+  border-bottom: 6px solid transparent;
+  cursor: pointer;
+  transition: transform 0.06s ease, border-width 0.06s ease, filter 0.12s ease;
+}
+
+.node:active:not(:disabled) {
+  transform: translateY(6px);
+  border-bottom-width: 0;
+}
+
+.node-complete {
+  background: var(--gold);
+  border-bottom-color: var(--gold-dark);
+  color: #fff;
+}
+
+.node-available {
+  background: var(--green);
+  border-bottom-color: var(--green-dark);
+  color: #fff;
+}
+
+.node-locked {
+  background: var(--stone-light);
+  border-bottom-color: var(--stone);
+  color: var(--stone);
+  cursor: default;
 }
 
 /* Used by SkillNode for a locked-skill click — a quick "no" shake instead
@@ -132,6 +299,54 @@ body {
   padding-bottom: 0;
 }
 
+/* Content + right rail. Duolingo fills the space to the right of the path
+   with progress widgets rather than leaving it empty, which is most of what
+   makes the page feel inhabited. */
+.app-content {
+  display: flex;
+  gap: 32px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.app-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.right-rail {
+  width: 340px;
+  flex-shrink: 0;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rail-card {
+  border: 2px solid var(--stone-light);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.rail-card-title {
+  font-family: var(--font-baloo), sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.3px;
+}
+
+/* Below 1100px the rail is the first thing to go — the path itself must keep
+   its full width, and the rail is supplementary. */
+@media (max-width: 1100px) {
+  .right-rail {
+    display: none;
+  }
+}
+
 /* ===================================================================
    Desktop Sidebar
    =================================================================== */
@@ -168,7 +383,7 @@ body {
   font-family: var(--font-baloo), sans-serif;
   font-size: 24px;
   font-weight: 800;
-  color: var(--celadon);
+  color: var(--green);
   letter-spacing: -0.5px;
   text-transform: lowercase;
 }
@@ -200,14 +415,14 @@ body {
 }
 
 .sidebar-link-active {
-  background: var(--celadon-light);
-  color: var(--celadon);
-  border: 2px solid var(--celadon);
+  background: var(--green-light);
+  color: var(--green);
+  border: 2px solid var(--green);
 }
 
 .sidebar-link-active:hover {
-  background: var(--celadon-light);
-  color: var(--celadon);
+  background: var(--green-light);
+  color: var(--green);
 }
 
 .sidebar-link-icon {
@@ -272,7 +487,7 @@ body {
   }
 
   .mobile-tab-active {
-    color: var(--celadon);
+    color: var(--green);
   }
 
   .mobile-tab-icon {

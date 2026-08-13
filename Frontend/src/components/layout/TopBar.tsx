@@ -24,12 +24,15 @@ function Stat({
 }) {
   return (
     <div
-      className="flex items-center gap-1.5 rounded-full bg-paper px-3 py-1.5"
+      className="flex items-center gap-1.5"
       role="status"
       aria-label={`${label}: ${value}`}
+      title={label}
     >
       <span style={{ color }}>{icon}</span>
-      <span className="font-display text-sm font-bold text-ink">{value}</span>
+      <span className="font-display text-lg font-extrabold" style={{ color }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -37,18 +40,18 @@ function Stat({
 export function TopBar({ user, courseTitle }: TopBarProps) {
   return (
     <header className="sticky top-0 z-10 border-b-2 border-stone-light bg-paper-raised">
-      <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-3">
+      <div className="mx-auto flex w-full max-w-[1000px] items-center justify-between px-6 py-4">
         <div>
-          <p className="font-display text-base font-bold text-ink">
+          <p className="font-display text-base font-extrabold text-ink">
             {courseTitle}
           </p>
           <p className="text-xs text-ink-soft">{user.name}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-5">
           <Stat
             icon={<FlameIcon size={20} />}
             value={user.streak}
-            color="var(--cinnabar)"
+            color="var(--red)"
             label="Day streak"
           />
           <Stat
@@ -60,13 +63,13 @@ export function TopBar({ user, courseTitle }: TopBarProps) {
           <Stat
             icon={<GemIcon size={20} />}
             value={user.gems}
-            color="var(--indigo)"
+            color="var(--blue)"
             label="Gems"
           />
           <Stat
             icon={<HeartIcon size={20} />}
             value={user.hearts}
-            color="var(--cinnabar)"
+            color="var(--red)"
             label="Hearts"
           />
         </div>
