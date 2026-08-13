@@ -23,6 +23,7 @@ deliberate P0 scope cut given the deadline, not an oversight.
 from sqlalchemy.orm import Session
 
 from app.models.models import Lesson, Skill, Unit, User, UserProgress
+from app.services.user_service import update_streak
 
 
 def complete_lesson(db: Session, user: User, lesson: Lesson) -> dict:
@@ -48,6 +49,10 @@ def complete_lesson(db: Session, user: User, lesson: Lesson) -> dict:
     if progress.status == "completed":
         newly_unlocked_skill_id = _unlock_next_skill(db, user, skill)
 
+    # Streak: update once per calendar day, idempotent on same-day repeats.
+    update_streak(user)
+    db.add(user)
+
     db.commit()
     db.refresh(progress)
     db.refresh(user)
@@ -59,6 +64,7 @@ def complete_lesson(db: Session, user: User, lesson: Lesson) -> dict:
         "skill_status": progress.status,
         "xp_total": user.xp_total,
         "hearts": user.hearts,
+        "streak": user.streak,
         "newly_unlocked_skill_id": newly_unlocked_skill_id,
     }
 

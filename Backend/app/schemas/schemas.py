@@ -120,6 +120,7 @@ class LessonCompleteResponse(BaseModel):
     skill_status: str
     xp_total: int
     hearts: int
+    streak: int
     newly_unlocked_skill_id: Optional[int] = None
 
 

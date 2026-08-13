@@ -116,5 +116,6 @@ export interface LessonCompleteResponse {
   skill_status: SkillStatus;
   xp_total: number;
   hearts: number;
+  streak: number;
   newly_unlocked_skill_id: number | null;
 }
