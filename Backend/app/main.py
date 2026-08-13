@@ -3,7 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.base import Base
 from app.database.connection import engine
-from app.models import models  # noqa: F401  <-- see note below
+from app.models import models  # noqa: F401
+from app.routes import (
+    courses_routes,
+    exercises_routes,
+    lessons_routes,
+    users_routes,
+)
 
 app = FastAPI(title="Duolingo Clone API")
 
@@ -15,13 +21,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(users_routes.router)
+app.include_router(courses_routes.router)
+app.include_router(lessons_routes.router)
+app.include_router(exercises_routes.router)
+
+
 @app.on_event("startup")
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
 
+
 @app.get("/")
 def root():
     return {"status": "ok", "service": "duolingo-clone-api"}
+
 
 @app.get("/health")
 def health():
