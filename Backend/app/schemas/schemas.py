@@ -43,6 +43,20 @@ class UserResponse(UserBase):
     last_active_date: Optional[datetime] = None
     gems: int
 
+    # Heart economy, sent so the frontend never has to hardcode the rules.
+    # seconds_until_next_heart is None when hearts are already full.
+    max_hearts: int
+    seconds_until_next_heart: Optional[int] = None
+    heart_refill_gem_cost: int
+
+
+class HeartsRefillResponse(BaseModel):
+    """Result of POST /users/{id}/hearts/refill."""
+    hearts: int
+    max_hearts: int
+    gems: int
+    gems_spent: int
+
 
 # ---------------------------------------------------------------------------
 # Exercise

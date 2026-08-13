@@ -12,6 +12,7 @@ import type {
   ExerciseSubmitResponse,
   LessonCompleteResponse,
   LessonWithExercises,
+  UserResponse,
 } from "@/types/api";
 
 type PlayerStatus =
@@ -26,6 +27,8 @@ interface PlayerState {
   status: PlayerStatus;
   error: string | null;
   lesson: LessonWithExercises | null;
+  /** Needed by the out-of-hearts screen for the gem balance and regen countdown. */
+  user: UserResponse | null;
   currentIndex: number;
   hearts: number;
   selectedAnswer: unknown;
@@ -40,6 +43,7 @@ const initialState: PlayerState = {
   status: "loading",
   error: null,
   lesson: null,
+  user: null,
   currentIndex: 0,
   hearts: 0,
   selectedAnswer: null,
@@ -58,6 +62,11 @@ function errorMessage(err: unknown): string {
 
 export function useLessonPlayer(lessonId: number, userId: number) {
   const [state, setState] = useState<PlayerState>(initialState);
+
+  // Bumped by restart() to re-run the load effect below. Lets the out-of-hearts
+  // screen drop straight back into the lesson after a refill, instead of
+  // forcing a full page reload.
+  const [reloadToken, setReloadToken] = useState(0);
 
   // Keeps the latest state available to event handlers without putting
   // side effects inside setState updater functions.
@@ -88,6 +97,7 @@ export function useLessonPlayer(lessonId: number, userId: number) {
         setState((current) => ({
           ...current,
           lesson,
+          user,
           hearts: user.hearts,
           status: user.hearts <= 0 ? "no-hearts" : "playing",
         }));
@@ -105,7 +115,11 @@ export function useLessonPlayer(lessonId: number, userId: number) {
     return () => {
       cancelled = true;
     };
-  }, [lessonId, userId]);
+  }, [lessonId, userId, reloadToken]);
+
+  const restart = useCallback(() => {
+    setReloadToken((token) => token + 1);
+  }, []);
 
   const selectAnswer = useCallback((answer: unknown) => {
     const current = stateRef.current;
@@ -178,6 +192,18 @@ export function useLessonPlayer(lessonId: number, userId: number) {
         ...previous,
         status: "failed",
       }));
+
+      // The cached user is from lesson start, when hearts were still positive —
+      // so it carries no regen countdown. Refetch so the out-of-hearts screen
+      // can show an accurate countdown and gem balance.
+      getUser(userId)
+        .then((user) => {
+          setState((previous) => ({ ...previous, user }));
+        })
+        .catch(() => {
+          // Non-fatal: the refill button still works without a countdown.
+        });
+
       return;
     }
 
@@ -224,5 +250,6 @@ export function useLessonPlayer(lessonId: number, userId: number) {
     selectAnswer,
     checkAnswer,
     continueExercise,
+    restart,
   };
 }

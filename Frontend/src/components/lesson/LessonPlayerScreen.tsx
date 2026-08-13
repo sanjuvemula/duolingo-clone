@@ -49,11 +49,23 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
   }
 
   if (player.status === "no-hearts") {
-    return <LessonFailedScreen reason="no-hearts" />;
+    return (
+      <LessonFailedScreen
+        reason="no-hearts"
+        user={player.user}
+        onRefilled={player.restart}
+      />
+    );
   }
 
   if (player.status === "failed") {
-    return <LessonFailedScreen reason="hearts-lost" />;
+    return (
+      <LessonFailedScreen
+        reason="hearts-lost"
+        user={player.user}
+        onRefilled={player.restart}
+      />
+    );
   }
 
   if (player.status === "complete") {

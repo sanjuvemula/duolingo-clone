@@ -13,6 +13,10 @@ class User(Base):
     hearts = Column(Integer, default=5)
     streak = Column(Integer, default=0)
     last_active_date = Column(DateTime, nullable=True)
+    # Separate from last_active_date on purpose: streak math needs "last calendar
+    # day active", heart regen needs "last time the heart count changed". One
+    # field cannot mean both without corrupting the other.
+    hearts_updated_at = Column(DateTime, nullable=True)
     gems = Column(Integer, default=0)
 
     progress = relationship("UserProgress", back_populates="user")

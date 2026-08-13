@@ -1,5 +1,10 @@
 import type { UserResponse } from "@/types/api";
-import { FlameIcon, GemIcon, HeartIcon } from "@/components/learning-path/icons";
+import {
+  BoltIcon,
+  FlameIcon,
+  GemIcon,
+  HeartIcon,
+} from "@/components/learning-path/icons";
 
 interface TopBarProps {
   user: UserResponse;
@@ -45,6 +50,12 @@ export function TopBar({ user, courseTitle }: TopBarProps) {
             value={user.streak}
             color="var(--cinnabar)"
             label="Day streak"
+          />
+          <Stat
+            icon={<BoltIcon size={20} />}
+            value={user.xp_total}
+            color="var(--gold)"
+            label="Total XP"
           />
           <Stat
             icon={<GemIcon size={20} />}

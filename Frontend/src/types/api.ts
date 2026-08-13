@@ -22,6 +22,19 @@ export interface UserResponse {
   streak: number;
   last_active_date: string | null;
   gems: number;
+  /** Heart-economy rules come from the backend so the UI never hardcodes them. */
+  max_hearts: number;
+  /** Countdown to the next regenerated heart; null when hearts are full. */
+  seconds_until_next_heart: number | null;
+  heart_refill_gem_cost: number;
+}
+
+/** Matches schemas.HeartsRefillResponse — POST /users/{id}/hearts/refill. */
+export interface HeartsRefillResponse {
+  hearts: number;
+  max_hearts: number;
+  gems: number;
+  gems_spent: number;
 }
 
 /** One node in the skill tree. Matches schemas.SkillWithProgress. */

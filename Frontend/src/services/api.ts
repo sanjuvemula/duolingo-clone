@@ -2,6 +2,7 @@ import { API_BASE_URL } from "@/lib/constants";
 import type {
   CourseWithUnits,
   ExerciseSubmitResponse,
+  HeartsRefillResponse,
   LeaderboardEntry,
   LessonCompleteResponse,
   LessonWithExercises,
@@ -45,6 +46,12 @@ export function getSkillTree(
 
 export function getUser(userId: number): Promise<UserResponse> {
   return request(`/users/${userId}`);
+}
+
+/** POST /users/{id}/hearts/refill — spends gems to restore hearts to full.
+ * Throws ApiError(400) if hearts are already full or gems are insufficient. */
+export function refillHearts(userId: number): Promise<HeartsRefillResponse> {
+  return request(`/users/${userId}/hearts/refill`, { method: "POST" });
 }
 
 // ---------------------------------------------------------------------------

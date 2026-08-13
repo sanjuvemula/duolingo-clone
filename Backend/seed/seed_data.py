@@ -45,27 +45,25 @@ from app.models.models import (
 )
 
 
-def wipe_tables(db) -> None:
-    """Delete in reverse foreign-key dependency order so no FK constraint
-    trips, then commit. Makes this script safe to re-run any number of
-    times while iterating."""
-    db.query(UserProgress).delete()
-    db.query(Exercise).delete()
-    db.query(Lesson).delete()
-    db.query(Skill).delete()
-    db.query(Unit).delete()
-    db.query(Course).delete()
-    db.query(User).delete()
-    db.commit()
+def rebuild_schema() -> None:
+    """Drop every table and recreate it from the current models.
+
+    Deleting rows would be enough to re-seed content, but it would not pick up
+    model changes — SQLite can't add a column to an existing table via
+    create_all, so a schema edit would leave a stale DB that fails at runtime.
+    Since there is no migration tool in this project and the DB is disposable
+    demo data (duolingo.db is gitignored and rebuilt by this script), dropping
+    is the honest way to keep schema and models in sync.
+    """
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def seed() -> None:
-    Base.metadata.create_all(bind=engine)  # safe no-op if tables exist
+    rebuild_schema()
     db = SessionLocal()
 
     try:
-        wipe_tables(db)
-
         # --- Course --------------------------------------------------
         course = Course(title="Korean for English Speakers", language="Korean")
         db.add(course)
@@ -237,13 +235,15 @@ def seed() -> None:
         db.add_all(exercises)
 
         # --- Sample user (the "real" learner) --------------------------------
+        # Gems are mocked (never earned, only spent on heart refills) but seeded
+        # generously so a reviewer can actually exercise the refill flow.
         user = User(
             name="Demo User",
             email="demo@example.com",
             xp_total=0,
             hearts=5,
             streak=0,
-            gems=0,
+            gems=500,
         )
         db.add(user)
         db.flush()
