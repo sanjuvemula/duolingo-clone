@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend — Duolingo Clone
 
-## Getting Started
+Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4. Full architecture and API
+documentation lives in the [root README](../README.md); this file is just how to run and work on
+the frontend.
 
-First, run the development server:
+## Run
+
+The backend must be running first — see [`../Backend/README.md`](../Backend/README.md).
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8000` | Base URL of the backend API. |
 
-## Learn More
+Copy `.env.example` to `.env.local` to override it.
 
-To learn more about Next.js, take a look at the following resources:
+## Layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Directory | Responsibility |
+| --- | --- |
+| `src/app/` | App Router pages: learning path, lesson player, profile, leaderboard. |
+| `src/components/` | Presentational components, grouped by feature. |
+| `src/hooks/` | Stateful logic — `useSkillTree`, `useLessonPlayer`. |
+| `src/services/` | `api.ts`, the single place any network call happens. |
+| `src/types/` | Hand-written mirror of the backend Pydantic schemas. |
+| `src/lib/` | Shared helpers and config constants. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Components never call `fetch` directly: they render what a hook gives them, and hooks are the only
+callers of `services/api.ts`.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev     # dev server
+npm run build   # production build
+npm run lint    # eslint
+npx tsc --noEmit  # typecheck
+```
