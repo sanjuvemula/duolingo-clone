@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { UserResponse } from "@/types/api";
 import { FlameIcon, GemIcon, HeartIcon } from "@/components/learning-path/icons";
 
@@ -37,7 +38,9 @@ export function TopBar({ user, courseTitle }: TopBarProps) {
           <p className="font-display text-base font-bold text-ink">
             {courseTitle}
           </p>
-          <p className="text-xs text-ink-soft">{user.name}</p>
+          <Link href="/profile" className="text-xs text-ink-soft transition hover:text-ink">
+            {user.name}
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           <Stat
