@@ -154,9 +154,14 @@ class SkillWithProgress(SkillResponse):
     """Skill tree node: status/crowns come from a UserProgress row, not the
     Skill table itself, so the service layer merges them in before this
     schema gets built — that's why they can't just use `from_attributes`
-    straight off the Skill ORM object."""
+    straight off the Skill ORM object.
+
+    lesson_id is the first lesson (by order) belonging to this skill —
+    resolved from Skill.lessons in courses_controller.get_skill_tree so the
+    frontend can navigate directly to /lesson/{id} on click."""
     status: str = "locked"
     crowns: int = 0
+    lesson_id: Optional[int] = None
 
 
 class SkillWithLessons(SkillResponse):

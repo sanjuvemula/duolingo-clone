@@ -48,6 +48,7 @@ def get_skill_tree(db: Session, course_id: int, user: User) -> CourseWithUnits:
         skills_out: list[SkillWithProgress] = []
         for skill in sorted(unit.skills, key=lambda s: s.order):
             progress = progress_by_skill_id.get(skill.id)
+            first_lesson = min(skill.lessons, key=lambda l: l.order) if skill.lessons else None
             skills_out.append(
                 SkillWithProgress(
                     id=skill.id,
@@ -56,6 +57,7 @@ def get_skill_tree(db: Session, course_id: int, user: User) -> CourseWithUnits:
                     unit_id=skill.unit_id,
                     status=progress.status if progress else "locked",
                     crowns=progress.crowns if progress else 0,
+                    lesson_id=first_lesson.id if first_lesson else None,
                 )
             )
         units_out.append(

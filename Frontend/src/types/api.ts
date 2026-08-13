@@ -32,6 +32,9 @@ export interface SkillWithProgress {
   unit_id: number;
   status: SkillStatus;
   crowns: number;
+  /** First lesson (by order) for this skill — resolved server-side from
+   * the Skill→Lesson relationship. Null only if a skill has no lessons. */
+  lesson_id: number | null;
 }
 
 /** Matches schemas.UnitWithSkills. */

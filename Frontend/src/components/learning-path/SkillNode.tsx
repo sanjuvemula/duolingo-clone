@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { SkillWithProgress } from "@/types/api";
 import { ProgressRing } from "./ProgressRing";
 import { CrownIcon, LockIcon, PlayIcon } from "./icons";
@@ -14,23 +15,23 @@ interface SkillNodeProps {
 
 /** Renders one skill's lock/available/completed state and progress ring.
  *
- * Deliberately does not navigate anywhere on click yet: the skill-tree API
- * (GET /courses/{id}/skill-tree) returns status/crowns per skill, not
- * lesson ids — there's no lesson data on this schema to route to. Deciding
- * how the frontend resolves "which lesson does this skill open" is part of
- * wiring the lesson player (step 10/11), together with whatever the lesson
- * player actually needs from the API — not something to guess at here.
- * Locked nodes still get a shake for click feedback; unlocked nodes are
- * shown as selectable but are otherwise inert for now. */
+ * Clicking an available or completed skill navigates to the lesson player
+ * at /lesson/{lesson_id}, where lesson_id is the first lesson (by order)
+ * for that skill — resolved server-side in the skill-tree response.
+ * Locked nodes get a shake animation for click feedback. */
 export function SkillNode({ skill, offsetX }: SkillNodeProps) {
   const [shaking, setShaking] = useState(false);
+  const router = useRouter();
 
   const handleClick = () => {
     if (skill.status === "locked") {
       setShaking(true);
       setTimeout(() => setShaking(false), 400);
+      return;
     }
-    // Unlocked nodes: no-op for now — see docstring above.
+    if (skill.lesson_id !== null) {
+      router.push(`/lesson/${skill.lesson_id}`);
+    }
   };
 
   const isLocked = skill.status === "locked";
