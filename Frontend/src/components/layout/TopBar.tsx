@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { UserResponse } from "@/types/api";
-import { FlameIcon, GemIcon, HeartIcon } from "@/components/learning-path/icons";
+import { CrownIcon, FlameIcon, GemIcon, HeartIcon } from "@/components/learning-path/icons";
 
 interface TopBarProps {
   user: UserResponse;
@@ -43,6 +43,15 @@ export function TopBar({ user, courseTitle }: TopBarProps) {
           </Link>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/leaderboard"
+            aria-label="Leaderboard"
+            className="flex items-center gap-1.5 rounded-full bg-paper-raised px-3 py-1.5 shadow-sm transition hover:brightness-95"
+          >
+            <span style={{ color: "var(--gold)" }}>
+              <CrownIcon size={20} />
+            </span>
+          </Link>
           <Stat
             icon={<FlameIcon size={20} />}
             value={user.streak}

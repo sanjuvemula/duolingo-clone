@@ -2,6 +2,7 @@ import { API_BASE_URL } from "@/lib/constants";
 import type {
   CourseWithUnits,
   ExerciseSubmitResponse,
+  LeaderboardEntry,
   LessonCompleteResponse,
   LessonWithExercises,
   UserResponse,
@@ -79,4 +80,14 @@ export function completeLesson(
   return request(`/lessons/${lessonId}/complete?user_id=${userId}`, {
     method: "POST",
   });
+}
+
+// ---------------------------------------------------------------------------
+// Leaderboard
+// ---------------------------------------------------------------------------
+
+export function getLeaderboard(
+  userId: number
+): Promise<LeaderboardEntry[]> {
+  return request(`/leaderboard?user_id=${userId}`);
 }

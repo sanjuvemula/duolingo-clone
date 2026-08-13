@@ -201,3 +201,18 @@ class CourseResponse(BaseModel):
 class CourseWithUnits(CourseResponse):
     """Root of the skill-tree endpoint: GET /courses/{id}/skill-tree?user_id=..."""
     units: list[UnitWithSkills] = []
+
+
+# ---------------------------------------------------------------------------
+# Leaderboard
+# ---------------------------------------------------------------------------
+
+class LeaderboardEntry(BaseModel):
+    """One row on the leaderboard. `is_current_user` lets the frontend
+    highlight the logged-in learner's row without leaking the acting
+    user id to the client."""
+    rank: int
+    user_id: int
+    name: str
+    xp_total: int
+    is_current_user: bool

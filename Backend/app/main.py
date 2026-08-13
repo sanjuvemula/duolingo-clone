@@ -7,6 +7,7 @@ from app.models import models  # noqa: F401
 from app.routes import (
     courses_routes,
     exercises_routes,
+    leaderboard_routes,
     lessons_routes,
     users_routes,
 )
@@ -25,6 +26,7 @@ app.include_router(users_routes.router)
 app.include_router(courses_routes.router)
 app.include_router(lessons_routes.router)
 app.include_router(exercises_routes.router)
+app.include_router(leaderboard_routes.router)
 
 
 @app.on_event("startup")

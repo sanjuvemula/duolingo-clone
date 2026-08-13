@@ -119,3 +119,15 @@ export interface LessonCompleteResponse {
   streak: number;
   newly_unlocked_skill_id: number | null;
 }
+
+// ---------------------------------------------------------------------------
+// Leaderboard — mirrors Backend/app/schemas/schemas.py LeaderboardEntry
+// ---------------------------------------------------------------------------
+
+export interface LeaderboardEntry {
+  rank: number;
+  user_id: number;
+  name: string;
+  xp_total: number;
+  is_current_user: boolean;
+}

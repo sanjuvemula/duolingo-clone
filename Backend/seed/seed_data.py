@@ -236,7 +236,7 @@ def seed() -> None:
         ]
         db.add_all(exercises)
 
-        # --- Sample user --------------------------------------------------
+        # --- Sample user (the "real" learner) --------------------------------
         user = User(
             name="Demo User",
             email="demo@example.com",
@@ -247,6 +247,19 @@ def seed() -> None:
         )
         db.add(user)
         db.flush()
+
+        # --- Leaderboard seed users ------------------------------------------
+        # Pre-populated with varied XP so the leaderboard isn't empty on
+        # first load. Some rank above the real user (who starts at 0 XP),
+        # some rank below — gives the frontend a realistic-looking board.
+        leaderboard_users = [
+            User(name="Min-jun Park", email="minjun@example.com", xp_total=480, hearts=5, streak=12, gems=45),
+            User(name="Soo-ah Kim", email="sooah@example.com", xp_total=350, hearts=5, streak=7, gems=30),
+            User(name="Ji-hoon Lee", email="jihoon@example.com", xp_total=210, hearts=5, streak=3, gems=15),
+            User(name="Ha-eun Choi", email="haeun@example.com", xp_total=120, hearts=5, streak=5, gems=20),
+            User(name="Yuna Kang", email="yuna@example.com", xp_total=60, hearts=5, streak=1, gems=5),
+        ]
+        db.add_all(leaderboard_users)
 
         # --- Progress: only the first skill in the tree starts unlocked --
         # This mirrors real skill-tree logic (services layer will unlock the
@@ -262,7 +275,8 @@ def seed() -> None:
 
         print("Seed complete:")
         print(f"  1 course, 2 units, 3 skills, {len(lessons)} lessons, {len(exercises)} exercises")
-        print(f"  1 user -> id={user.id}, email={user.email}")
+        print(f"  {1 + len(leaderboard_users)} users (1 real + {len(leaderboard_users)} leaderboard)")
+        print(f"  real user -> id={user.id}, email={user.email}")
 
     finally:
         db.close()
