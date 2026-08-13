@@ -33,7 +33,7 @@ export function SkillPath({ course }: SkillPathProps) {
   const offsets = assignOffsets(course);
 
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center gap-10 px-6 pb-24 pt-8">
+    <div className="mx-auto flex max-w-2xl flex-col items-center gap-10 px-6 pb-24 pt-8">
       {course.units.map((unit) => (
         <div key={unit.id} className="flex w-full flex-col items-center gap-10">
           <UnitBanner title={unit.title} order={unit.order} />

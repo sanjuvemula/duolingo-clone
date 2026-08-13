@@ -1,6 +1,5 @@
-import Link from "next/link";
 import type { UserResponse } from "@/types/api";
-import { CrownIcon, FlameIcon, GemIcon, HeartIcon } from "@/components/learning-path/icons";
+import { FlameIcon, GemIcon, HeartIcon } from "@/components/learning-path/icons";
 
 interface TopBarProps {
   user: UserResponse;
@@ -20,7 +19,7 @@ function Stat({
 }) {
   return (
     <div
-      className="flex items-center gap-1.5 rounded-full bg-paper-raised px-3 py-1.5 shadow-sm"
+      className="flex items-center gap-1.5 rounded-full bg-paper px-3 py-1.5"
       role="status"
       aria-label={`${label}: ${value}`}
     >
@@ -32,26 +31,15 @@ function Stat({
 
 export function TopBar({ user, courseTitle }: TopBarProps) {
   return (
-    <header className="sticky top-0 z-10 border-b border-stone-light bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex max-w-md items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-10 border-b-2 border-stone-light bg-paper-raised">
+      <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-3">
         <div>
           <p className="font-display text-base font-bold text-ink">
             {courseTitle}
           </p>
-          <Link href="/profile" className="text-xs text-ink-soft transition hover:text-ink">
-            {user.name}
-          </Link>
+          <p className="text-xs text-ink-soft">{user.name}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/leaderboard"
-            aria-label="Leaderboard"
-            className="flex items-center gap-1.5 rounded-full bg-paper-raised px-3 py-1.5 shadow-sm transition hover:brightness-95"
-          >
-            <span style={{ color: "var(--gold)" }}>
-              <CrownIcon size={20} />
-            </span>
-          </Link>
           <Stat
             icon={<FlameIcon size={20} />}
             value={user.streak}

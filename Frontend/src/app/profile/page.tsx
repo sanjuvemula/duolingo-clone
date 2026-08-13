@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CURRENT_USER_ID } from "@/lib/constants";
 import { ApiError, getUser } from "@/services/api";
 import type { UserResponse } from "@/types/api";
+import { AppShell } from "@/components/layout/AppShell";
 import { StatCard } from "@/components/gamification/StatCard";
 import {
   FlameIcon,
@@ -46,30 +46,27 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="font-display text-ink-soft">Loading profile…</p>
-      </div>
+      <AppShell>
+        <div className="flex flex-1 items-center justify-center">
+          <p className="font-display text-ink-soft">Loading profile…</p>
+        </div>
+      </AppShell>
     );
   }
 
   if (error || !user) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="font-display text-lg font-bold text-ink">
-          Couldn&apos;t load profile
-        </p>
-        <p className="max-w-sm text-sm text-ink-soft">{error}</p>
-        <Link
-          href="/"
-          className="rounded-full bg-celadon px-5 py-2 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-        >
-          Back to path
-        </Link>
-      </div>
+      <AppShell>
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="font-display text-lg font-bold text-ink">
+            Couldn&apos;t load profile
+          </p>
+          <p className="max-w-sm text-sm text-ink-soft">{error}</p>
+        </div>
+      </AppShell>
     );
   }
 
-  // Initials for the avatar circle — first letter of each word in name.
   const initials = user.name
     .split(" ")
     .map((w) => w[0])
@@ -78,34 +75,25 @@ export default function ProfilePage() {
     .slice(0, 2);
 
   return (
-    <div className="flex flex-1 flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-stone-light bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex max-w-md items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="font-display text-sm font-bold text-ink-soft transition hover:text-ink"
-          >
-            ← Back
-          </Link>
-          <h1 className="font-display text-base font-bold text-ink">
-            Profile
-          </h1>
-          <div className="w-12" /> {/* spacer for centering */}
+    <AppShell>
+      {/* Page header */}
+      <header className="border-b-2 border-stone-light bg-paper-raised px-6 py-5">
+        <div className="mx-auto max-w-2xl">
+          <h1 className="font-display text-lg font-bold text-ink">Profile</h1>
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center gap-8 px-6 py-10">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-8 px-6 py-10">
         {/* Avatar + name */}
         <div className="flex flex-col items-center gap-3">
           <div
-            className="flex h-20 w-20 items-center justify-center rounded-full text-white shadow-md"
+            className="flex h-24 w-24 items-center justify-center rounded-full text-white shadow-lg"
             style={{ background: "var(--indigo)" }}
           >
-            <span className="font-display text-2xl font-bold">{initials}</span>
+            <span className="font-display text-3xl font-bold">{initials}</span>
           </div>
           <div className="text-center">
-            <h2 className="font-display text-xl font-bold text-ink">
+            <h2 className="font-display text-2xl font-bold text-ink">
               {user.name}
             </h2>
             <p className="text-sm text-ink-soft">{user.email}</p>
@@ -113,7 +101,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats grid */}
-        <div className="grid w-full grid-cols-2 gap-4">
+        <div className="grid w-full max-w-md grid-cols-2 gap-4">
           <StatCard
             icon={<CrownIcon size={28} />}
             label="Total XP"
@@ -151,15 +139,7 @@ export default function ProfilePage() {
             })}
           </p>
         )}
-
-        {/* CTA */}
-        <Link
-          href="/"
-          className="rounded-full bg-celadon px-6 py-3 font-display text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-        >
-          Continue learning
-        </Link>
       </div>
-    </div>
+    </AppShell>
   );
 }

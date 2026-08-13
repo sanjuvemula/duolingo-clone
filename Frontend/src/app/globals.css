@@ -112,6 +112,185 @@ body {
   }
 }
 
+/* ===================================================================
+   App Shell — sidebar + content layout
+   =================================================================== */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* Offset for the sidebar on desktop */
+  margin-left: 240px;
+  /* Offset for mobile bottom tabs */
+  padding-bottom: 0;
+}
+
+/* ===================================================================
+   Desktop Sidebar
+   =================================================================== */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: var(--paper-raised);
+  border-right: 2px solid var(--stone-light);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  z-index: 40;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 28px;
+  border-bottom: 1px solid var(--stone-light);
+  margin-bottom: 16px;
+}
+
+.sidebar-logo-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.sidebar-logo-text {
+  font-family: var(--font-baloo), sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--celadon);
+  letter-spacing: -0.5px;
+  text-transform: lowercase;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-family: var(--font-baloo), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.sidebar-link:hover {
+  background: var(--stone-light);
+  color: var(--ink);
+}
+
+.sidebar-link-active {
+  background: var(--celadon-light);
+  color: var(--celadon);
+  border: 2px solid var(--celadon);
+}
+
+.sidebar-link-active:hover {
+  background: var(--celadon-light);
+  color: var(--celadon);
+}
+
+.sidebar-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.sidebar-link-label {
+  white-space: nowrap;
+}
+
+/* ===================================================================
+   Mobile Bottom Tab Bar
+   =================================================================== */
+
+.mobile-tabs {
+  display: none;
+}
+
+/* ===================================================================
+   Responsive: tablet & mobile
+   =================================================================== */
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .app-main {
+    margin-left: 0;
+    padding-bottom: 72px; /* space for mobile tabs */
+  }
+
+  .mobile-tabs {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: var(--paper-raised);
+    border-top: 2px solid var(--stone-light);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 40;
+  }
+
+  .mobile-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--ink-soft);
+    transition: all 0.15s ease;
+  }
+
+  .mobile-tab-active {
+    color: var(--celadon);
+  }
+
+  .mobile-tab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+
+  .mobile-tab-label {
+    font-family: var(--font-baloo), sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

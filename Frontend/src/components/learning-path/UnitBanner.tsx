@@ -3,15 +3,28 @@ interface UnitBannerProps {
   order: number;
 }
 
+/** Full-width unit header, styled like the reference Duolingo green banners.
+ * Uses celadon for Unit 1, indigo for Unit 2, etc. to visually distinguish
+ * units while staying within the design palette. */
+const UNIT_COLORS = [
+  { bg: "var(--celadon)", text: "#fff" },
+  { bg: "var(--indigo)", text: "#fff" },
+  { bg: "var(--gold)", text: "#fff" },
+  { bg: "var(--cinnabar)", text: "#fff" },
+];
+
 export function UnitBanner({ title, order }: UnitBannerProps) {
+  const palette = UNIT_COLORS[(order - 1) % UNIT_COLORS.length];
+
   return (
-    <div className="mx-auto flex w-full max-w-sm items-center justify-between rounded-2xl bg-indigo px-5 py-4 text-white shadow-sm">
-      <div>
-        <p className="font-sans text-xs font-semibold uppercase tracking-wide text-white/70">
-          Unit {order}
-        </p>
-        <h2 className="font-display text-lg font-bold">{title}</h2>
-      </div>
+    <div
+      className="w-full rounded-2xl px-6 py-5 shadow-md"
+      style={{ background: palette.bg, color: palette.text }}
+    >
+      <p className="font-sans text-xs font-bold uppercase tracking-widest opacity-80">
+        Unit {order}
+      </p>
+      <h2 className="font-display text-xl font-bold mt-0.5">{title}</h2>
     </div>
   );
 }
