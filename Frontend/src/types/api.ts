@@ -149,12 +149,22 @@ export interface LessonCompleteResponse {
 // Leaderboard — mirrors Backend/app/schemas/schemas.py LeaderboardEntry
 // ---------------------------------------------------------------------------
 
+/** Band a rank falls in if the week ended now. */
+export type LeagueZone = "promotion" | "relegation" | "neutral";
+
+/** One row of the weekly league leaderboard. Ranking is by `week_xp` — this
+ * week only — with `xp_total` carried as supporting detail. */
 export interface LeaderboardEntry {
   rank: number;
   user_id: number;
   name: string;
   xp_total: number;
+  week_xp: number;
   is_current_user: boolean;
+  league_code: string;
+  league_title: string;
+  league_icon: string;
+  zone: LeagueZone;
 }
 // ---------------------------------------------------------------------------
 // Achievements

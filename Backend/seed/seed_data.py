@@ -30,6 +30,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from app.database.base import Base
 from app.database.connection import engine, SessionLocal
+from app.services import user_service
 from app.models.models import (
     User,
     Course,
@@ -256,15 +257,25 @@ COURSE = {
     ],
 }
 
-# Five leaderboard-filler users with varied XP, so the board isn't empty and
-# the demo learner has people both above and below them as they earn XP.
+# Rivals sharing the demo learner's league, so the weekly board is populated
+# and the learner sits mid-table with people to catch and people catching them.
+# (name, email, xp_total, streak, gems, week_xp)
+#
+# week_xp is what the league ranks on. These are chosen so the demo user's 90
+# lands 4th of 8 — just outside the top-3 promotion zone, which is the most
+# motivating place to look at a leaderboard from, and shows both the promotion
+# and relegation bands at once.
 LEADERBOARD_USERS = [
-    ("Min-jun Park", "minjun@example.com", 480, 12, 45),
-    ("Soo-ah Kim", "sooah@example.com", 350, 7, 30),
-    ("Ji-hoon Lee", "jihoon@example.com", 210, 3, 15),
-    ("Ha-eun Choi", "haeun@example.com", 120, 5, 20),
-    ("Yuna Kang", "yuna@example.com", 60, 1, 5),
+    ("Min-jun Park", "minjun@example.com", 480, 12, 45, 210),
+    ("Soo-ah Kim", "sooah@example.com", 350, 7, 30, 160),
+    ("Ji-hoon Lee", "jihoon@example.com", 210, 3, 15, 120),
+    ("Ha-eun Choi", "haeun@example.com", 120, 5, 20, 70),
+    ("Yuna Kang", "yuna@example.com", 60, 1, 5, 40),
+    ("Tae-yang Seo", "taeyang@example.com", 95, 2, 10, 25),
+    ("Bo-ram Jung", "boram@example.com", 40, 0, 0, 0),
 ]
+
+DEMO_LEAGUE = "gold"
 
 
 def rebuild_schema() -> None:
@@ -339,12 +350,17 @@ def seed() -> None:
         # locked skills at once, and the daily goal is partly filled.
         # Gems are mocked (never earned, only spent on heart refills) but
         # seeded generously so a reviewer can exercise the refill flow.
+        week_start = user_service.current_week_start()
+
         user = User(
             name="Demo User",
             email="demo@example.com",
             xp_total=140,
             xp_today=30,
             xp_today_date=datetime.utcnow(),
+            week_xp=90,
+            week_start=week_start,
+            league=DEMO_LEAGUE,
             hearts=4,
             streak=3,
             last_active_date=datetime.utcnow(),
@@ -354,8 +370,18 @@ def seed() -> None:
         db.flush()
 
         db.add_all([
-            User(name=name, email=email, xp_total=xp, hearts=5, streak=streak, gems=gems)
-            for name, email, xp, streak, gems in LEADERBOARD_USERS
+            User(
+                name=name,
+                email=email,
+                xp_total=xp,
+                hearts=5,
+                streak=streak,
+                gems=gems,
+                week_xp=week_xp,
+                week_start=week_start,
+                league=DEMO_LEAGUE,
+            )
+            for name, email, xp, streak, gems, week_xp in LEADERBOARD_USERS
         ])
 
         # --- Progress ------------------------------------------------------

@@ -235,14 +235,24 @@ class CourseWithUnits(CourseResponse):
 # ---------------------------------------------------------------------------
 
 class LeaderboardEntry(BaseModel):
-    """One row on the leaderboard. `is_current_user` lets the frontend
-    highlight the logged-in learner's row without leaking the acting
-    user id to the client."""
+    """One row on the weekly league leaderboard. `is_current_user` lets the
+    frontend highlight the logged-in learner's row without leaking the acting
+    user id to the client.
+
+    Ranking is by `week_xp` (this week only); `xp_total` is carried purely as
+    supporting detail. `zone` is 'promotion' | 'relegation' | 'neutral' — the
+    band this rank would land in if the week ended now.
+    """
     rank: int
     user_id: int
     name: str
     xp_total: int
+    week_xp: int
     is_current_user: bool
+    league_code: str
+    league_title: str
+    league_icon: str
+    zone: str
 
 # ---------------------------------------------------------------------------
 # Achievements

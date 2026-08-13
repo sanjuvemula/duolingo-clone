@@ -61,22 +61,54 @@ def update_streak(user: User) -> User:
     return user
 
 
-def add_xp(user: User, amount: int) -> User:
-    """Add XP to both the lifetime total and today's daily-goal tally.
+def current_week_start() -> datetime:
+    """Monday 00:00 UTC of the current week — the identity of "this week".
 
-    The daily tally rolls over lazily: if the stored xp_today_date is not
-    today, the tally is reset before adding, so no scheduled job is needed to
-    clear it at midnight.
+    Leagues reset weekly, so every weekly tally is stored beside the Monday it
+    belongs to. Comparing against this value is what makes a stale tally read
+    as zero without a scheduled reset.
+    """
+    now = datetime.utcnow()
+    monday = now - timedelta(days=now.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def add_xp(user: User, amount: int) -> User:
+    """Add XP to the lifetime total, today's daily-goal tally, and this week's
+    league tally.
+
+    Both period tallies roll over lazily: if the stored date doesn't belong to
+    the current period, the tally resets before adding. No scheduled job is
+    needed to clear either one.
     """
     today = datetime.utcnow().date()
+    week_start = current_week_start()
 
     if user.xp_today_date is None or user.xp_today_date.date() != today:
         user.xp_today = 0
 
+    if user.week_start is None or user.week_start < week_start:
+        user.week_xp = 0
+
     user.xp_total += amount
     user.xp_today = (user.xp_today or 0) + amount
     user.xp_today_date = datetime.utcnow()
+    user.week_xp = (user.week_xp or 0) + amount
+    user.week_start = week_start
     return user
+
+
+def xp_earned_this_week(user: User) -> int:
+    """This week's tally, or 0 if the stored tally belongs to an earlier week.
+
+    Read-side counterpart to add_xp's weekly rollover — lets the leaderboard
+    report the right number without writing to the row.
+    """
+    if user.week_start is None:
+        return 0
+    if user.week_start < current_week_start():
+        return 0
+    return user.week_xp or 0
 
 
 def xp_earned_today(user: User) -> int:

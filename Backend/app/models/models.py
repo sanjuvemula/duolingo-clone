@@ -15,6 +15,17 @@ class User(Base):
     # into today's progress.
     xp_today = Column(Integer, default=0)
     xp_today_date = Column(DateTime, nullable=True)
+    # This week's XP, for the league leaderboard. Same "value beside the period
+    # it counts for" shape as xp_today/xp_today_date: week_start stores the
+    # Monday the tally belongs to, so a stale week reads as 0 without a
+    # scheduled reset job.
+    week_xp = Column(Integer, default=0)
+    week_start = Column(DateTime, nullable=True)
+    # Which league the learner competes in. Denormalized onto the user rather
+    # than derived from XP on every read, because Duolingo's leagues are
+    # promotion/relegation based -- you stay in a league until the week ends,
+    # even if your XP would place you elsewhere mid-week.
+    league = Column(String, default="bronze")
     hearts = Column(Integer, default=5)
     streak = Column(Integer, default=0)
     last_active_date = Column(DateTime, nullable=True)

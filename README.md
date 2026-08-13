@@ -155,7 +155,7 @@ achievements             (catalog, no parent)
 
 | Table | Columns |
 | --- | --- |
-| `users` | `id`, `name`, `email` (unique), `xp_total`, `xp_today`, `xp_today_date`, `hearts`, `streak`, `last_active_date`, `hearts_updated_at`, `gems` |
+| `users` | `id`, `name`, `email` (unique), `xp_total`, `xp_today`, `xp_today_date`, `week_xp`, `week_start`, `league`, `hearts`, `streak`, `last_active_date`, `hearts_updated_at`, `gems` |
 | `courses` | `id`, `title`, `language` |
 | `units` | `id`, `title`, `order`, `course_id` |
 | `skills` | `id`, `title`, `order`, `unit_id` |
@@ -218,7 +218,7 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 | `GET` | `/lessons/{lesson_id}` | A lesson with its exercises, **without** correct answers. |
 | `POST` | `/exercises/{exercise_id}/submit?user_id=` | Check one answer. Awards XP or removes a heart, and reports whether the lesson has now failed. |
 | `POST` | `/lessons/{lesson_id}/complete?user_id=` | Finalize a lesson: grant a crown, complete/unlock skills, advance the streak. |
-| `GET` | `/leaderboard?user_id=` | All learners ranked by XP, flagging the caller's own row. |
+| `GET` | `/leaderboard?user_id=` | Standings for the caller's league, ranked by this week's XP, with each row's promotion/relegation zone and the caller's own row flagged. |
 
 ### Gamification rules
 
@@ -235,6 +235,12 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
   count the skill becomes `completed` and the next skill in course order unlocks.
 - **Streak** — advances at most once per calendar day, on lesson completion. Same day is a no-op,
   the next day increments, and any larger gap resets it to 1.
+- **Weekly leagues** — the leaderboard ranks learners by XP earned *this week* within a league
+  tier, not by lifetime XP. A lifetime board is unwinnable: an early user builds a lead nobody can
+  close, so it stops motivating anyone. Top 3 are promoted, bottom 2 relegated, and the week
+  resets Monday 00:00 UTC. `users.league` is stored rather than derived from XP, because promotion
+  happens at the week boundary — a learner stays in their league all week even once their XP would
+  place them elsewhere.
 - **Achievements** — eight badges across XP, streak, crown and skill-completion milestones.
   Evaluated after a lesson completes, once crowns, status and streak have all been updated, so a
   badge earned *by* that lesson is caught on the same request. Also evaluated on read, so adding a
@@ -252,7 +258,9 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
   140 XP, a 3-day streak, 4 of 5 hearts, 500 gems, 30/50 XP toward today's goal, with *Greetings*
   completed, *Numbers* half done, and the rest locked. That renders a completed, an available and
   several locked nodes on first load, plus a partly-filled crown ring and daily goal.
-- Five additional users with varied XP purely so the leaderboard is populated.
+- Seven rivals sharing the demo learner's Gold League, with weekly XP chosen so the learner lands
+  4th of 8 — just outside the promotion zone, which puts both the promotion and relegation bands
+  on screen at once.
 
 Course content is declared as a plain data structure at the top of `seed/seed_data.py` and
 expanded into rows by `build_course()`, so adding a lesson is a dict entry rather than a block of
@@ -270,6 +278,11 @@ ORM constructor calls.
 - **Gems are mocked.** They are seeded and can be spent on heart refills, but are never earned.
 - **Audio and pronunciation exercises are out of scope**, as the brief allows.
 - **One course only.** The schema supports many, but only Korean is seeded.
+- **The guided tour is client-only.** The "Guide" button on the learning path opens a spotlight
+  walkthrough of the interface. Whether it has been seen lives in `localStorage`, not on the user
+  row: it's a UI preference, not learner progress, so it shouldn't round-trip through the API. The
+  step list is filtered to targets actually on screen when it opens, so the tour shortens itself
+  on narrow viewports where the right rail is hidden.
 - **Settings is a placeholder.** `/settings` renders the shape a real settings page would take,
   with every row marked "SOON" and nothing wired to the backend. The brief states a "Coming Soon"
   placeholder is sufficient here.
