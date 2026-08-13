@@ -24,7 +24,7 @@ export function TypeAnswerExercise({
     ? "var(--paper-raised)"
     : correct
       ? "var(--green-light)"
-      : "#fbe4df";
+      : "var(--red-light)";
 
   return (
     <input

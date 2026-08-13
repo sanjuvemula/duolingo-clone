@@ -7,6 +7,8 @@ import type {
   LeaderboardEntry,
   LessonCompleteResponse,
   LessonWithExercises,
+  PracticeSetResponse,
+  PracticeSubmitResponse,
   UserResponse,
 } from "@/types/api";
 
@@ -109,4 +111,24 @@ export function getAchievements(
   userId: number
 ): Promise<AchievementResponse[]> {
   return request(`/users/${userId}/achievements`);
+}
+
+
+// ---------------------------------------------------------------------------
+// Practice (timed challenge)
+// ---------------------------------------------------------------------------
+
+export function getPracticeSet(userId: number): Promise<PracticeSetResponse> {
+  return request(`/practice?user_id=${userId}`);
+}
+
+export function submitPracticeAnswer(
+  exerciseId: number,
+  userId: number,
+  answer: unknown
+): Promise<PracticeSubmitResponse> {
+  return request(`/practice/${exerciseId}/submit?user_id=${userId}`, {
+    method: "POST",
+    body: JSON.stringify({ answer }),
+  });
 }

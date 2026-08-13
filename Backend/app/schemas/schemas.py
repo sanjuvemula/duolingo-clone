@@ -271,3 +271,26 @@ class AchievementResponse(BaseModel):
     icon: str
     earned: bool
     earned_at: Optional[datetime] = None
+
+
+# ---------------------------------------------------------------------------
+# Practice (timed challenge)
+# ---------------------------------------------------------------------------
+
+class PracticeSetResponse(BaseModel):
+    """GET /practice — a timed round's worth of exercises.
+
+    Exercises use ExercisePublic, so correct_answer never leaves the server
+    here either; answers are checked via POST /practice/submit.
+    """
+    duration_seconds: int
+    exercises: list[ExercisePublic] = []
+
+
+class PracticeSubmitResponse(BaseModel):
+    """POST /practice/submit. Note the absence of any hearts field — practice
+    deliberately doesn't cost hearts, so there is nothing to report."""
+    correct: bool
+    correct_answer: Any
+    xp_earned: int
+    xp_total: int

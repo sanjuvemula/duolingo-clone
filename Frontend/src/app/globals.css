@@ -38,6 +38,72 @@
   --red: #ff4b4b;
   --red-dark: #ea2b2b;
   --red-light: #ffdfe0;
+
+  /* Accent-coloured *text*, as used on the feedback bar. Deliberately not the
+     -dark bevel shades: those are picked to sit under a solid accent fill, and
+     reusing them for text on a pale tint measures about 3.4:1 — under the 4.5
+     WCAG AA needs for the 14px "Correct answer:" line. These are darkened
+     until that line clears AA on its tinted background. */
+  --green-strong: #3a7d00;
+  --red-strong: #b91c1c;
+}
+
+/*
+ * Dark theme.
+ *
+ * Declared twice on purpose. The media query handles a visitor whose OS is set
+ * to dark and who has never touched the toggle; the [data-theme] rules handle
+ * an explicit choice. The media query is guarded with :not([data-theme="light"])
+ * so that choosing light on a dark-OS machine actually wins — without the
+ * guard the media query would keep overriding it.
+ *
+ * Only the tokens change. Every component reads these variables, so nothing
+ * else in the app needs a dark-mode branch.
+ *
+ * The accents stay vivid (that is the brand) but the *-light shades flip from
+ * pale tints to deep, desaturated versions: a pale mint that reads as "correct"
+ * on white glows painfully against a dark ground.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131f24;
+    --paper-raised: #202f36;
+    --paper-sunken: #0d181c;
+    --ink: #f1f7fb;
+    --ink-soft: #8fa3ad;
+
+    --green-light: #1f3a12;
+    --blue-light: #16303d;
+    --gold-light: #3a2f0c;
+    --red-light: #3d1a1c;
+
+    --stone: #52656d;
+    --stone-light: #37464f;
+
+    /* Light tints, so accent text stays legible on the dark tinted panels. */
+    --green-strong: #b7f28a;
+    --red-strong: #ffb3b3;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #131f24;
+  --paper-raised: #202f36;
+  --paper-sunken: #0d181c;
+  --ink: #f1f7fb;
+  --ink-soft: #8fa3ad;
+
+  --green-light: #1f3a12;
+  --blue-light: #16303d;
+  --gold-light: #3a2f0c;
+  --red-light: #3d1a1c;
+
+  --stone: #52656d;
+  --stone-light: #37464f;
+
+  /* Light tints, so accent text stays legible on the dark tinted panels. */
+  --green-strong: #b7f28a;
+  --red-strong: #ffb3b3;
 }
 
 @theme inline {

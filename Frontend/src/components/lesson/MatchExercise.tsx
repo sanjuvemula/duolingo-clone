@@ -58,7 +58,7 @@ export function MatchExercise({ pairs, checked, correct, onComplete }: MatchExer
     if (checked) {
       return correct
         ? { borderColor: "var(--green)", background: "var(--green-light)" }
-        : { borderColor: "var(--red)", background: "#fbe4df" };
+        : { borderColor: "var(--red)", background: "var(--red-light)" };
     }
     if (isMatched) {
       return { borderColor: "var(--green)", background: "var(--green-light)" };

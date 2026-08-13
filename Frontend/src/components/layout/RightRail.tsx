@@ -42,6 +42,17 @@ export function RightRail({ user }: RightRailProps) {
         </div>
       </section>
 
+      <section className="rail-card" aria-label="Timed practice">
+        <h2 className="rail-card-title">Timed challenge</h2>
+        <p className="mt-2 text-xs text-ink-soft">
+          60 seconds of mixed review from everything you&apos;ve unlocked. Earns
+          XP, costs no hearts.
+        </p>
+        <Link href="/practice" className="btn btn-green mt-3 w-full">
+          Start practice
+        </Link>
+      </section>
+
       <section className="rail-card" aria-label="Leaderboard">
         <h2 className="rail-card-title">Leaderboard</h2>
         <p className="mt-2 text-xs text-ink-soft">

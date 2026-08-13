@@ -118,7 +118,7 @@ larger transaction later without having already committed half of it.
 ### Frontend — data flows one way
 
 ```
-app/            App Router pages (path, lesson, profile, leaderboard).
+app/            App Router pages (path, lesson, practice, profile, leaderboard, settings).
 components/     Presentational, grouped by feature (layout, learning-path, lesson, gamification).
 hooks/          Stateful logic: useSkillTree, useLessonPlayer (a small status machine).
 services/api.ts The single place any network call happens.
@@ -214,6 +214,8 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 | `GET` | `/users/{user_id}` | Learner state: XP, hearts, streak, gems, daily-goal progress, and the heart-regen countdown. Applies pending heart regeneration as a side effect. |
 | `POST` | `/users/{user_id}/hearts/refill` | Spend gems to restore hearts to full. `400` if already full or too few gems. |
 | `GET` | `/users/{user_id}/achievements` | Full badge catalog with this learner's earned state merged in — locked badges included, so the profile can show them as goals. |
+| `GET` | `/practice?user_id=` | A shuffled set of exercises drawn from every skill the learner has unlocked, plus the round's duration. |
+| `POST` | `/practice/{exercise_id}/submit?user_id=` | Check a practice answer. Awards XP; deliberately never costs a heart. |
 | `GET` | `/courses/{course_id}/skill-tree?user_id=` | The whole tree — units, skills, and this learner's per-skill status and crowns merged in. |
 | `GET` | `/lessons/{lesson_id}` | A lesson with its exercises, **without** correct answers. |
 | `POST` | `/exercises/{exercise_id}/submit?user_id=` | Check one answer. Awards XP or removes a heart, and reports whether the lesson has now failed. |
@@ -241,6 +243,10 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
   resets Monday 00:00 UTC. `users.league` is stored rather than derived from XP, because promotion
   happens at the week boundary — a learner stays in their league all week even once their XP would
   place them elsewhere.
+- **Timed practice** — a 60-second round drawn from every unlocked skill. Wrong answers cost no
+  hearts: hearts exist to make *lessons* consequential, and draining them here would punish the
+  learner for choosing to revise. The pressure is the clock instead. XP is real and flows through
+  the same `add_xp`, so a practice round counts toward the daily goal and the weekly league.
 - **Achievements** — eight badges across XP, streak, crown and skill-completion milestones.
   Evaluated after a lesson completes, once crowns, status and streak have all been updated, so a
   badge earned *by* that lesson is caught on the same request. Also evaluated on read, so adding a
@@ -278,6 +284,14 @@ ORM constructor calls.
 - **Gems are mocked.** They are seeded and can be spent on heart refills, but are never earned.
 - **Audio and pronunciation exercises are out of scope**, as the brief allows.
 - **One course only.** The schema supports many, but only Korean is seeded.
+- **Dark mode is token-only.** Every component reads CSS variables, so the dark theme redefines
+  those variables and nothing else changes. It is declared twice on purpose — once under
+  `prefers-color-scheme` for someone who has never touched the toggle, once under `[data-theme]`
+  for an explicit choice — with the media query guarded by `:not([data-theme="light"])` so
+  choosing light on a dark-OS machine actually wins. A pre-paint inline script applies the stored
+  choice before first render, avoiding a white flash. Accent *text* uses separate `-strong` tokens
+  from the `-dark` bevel shades, because the bevel colours measure about 3.4:1 on a pale tint and
+  miss WCAG AA.
 - **The guided tour is client-only.** The "Guide" button on the learning path opens a spotlight
   walkthrough of the interface. Whether it has been seen lives in `localStorage`, not on the user
   row: it's a UI preference, not learner progress, so it shouldn't round-trip through the API. The

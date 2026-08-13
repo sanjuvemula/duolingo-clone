@@ -184,3 +184,24 @@ export interface AchievementResponse {
   earned: boolean;
   earned_at: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Practice (timed challenge)
+// ---------------------------------------------------------------------------
+
+/** GET /practice — a timed round's worth of exercises, drawn from every skill
+ * the learner has unlocked. `duration_seconds` comes from the backend so the
+ * clock length is defined in one place. */
+export interface PracticeSetResponse {
+  duration_seconds: number;
+  exercises: ExercisePublic[];
+}
+
+/** POST /practice/{id}/submit. No hearts field: practice deliberately doesn't
+ * cost hearts, so there is nothing to report. */
+export interface PracticeSubmitResponse {
+  correct: boolean;
+  correct_answer: unknown;
+  xp_earned: number;
+  xp_total: number;
+}

@@ -57,6 +57,10 @@ export function FeedbackBar({
           <span
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl font-black"
             style={{
+              // Deliberately white in both themes — a light chip is what makes
+              // the bar read as Duolingo's. Because the chip stays white, its
+              // glyph keeps the *dark* accent in both themes rather than the
+              // -strong text shade used against the tinted bar behind it.
               background: "#fff",
               color: isCorrect ? "var(--green-dark)" : "var(--red-dark)",
             }}
@@ -68,14 +72,14 @@ export function FeedbackBar({
           <div>
             <p
               className="font-display text-lg font-extrabold"
-              style={{ color: isCorrect ? "var(--green-dark)" : "var(--red-dark)" }}
+              style={{ color: isCorrect ? "var(--green-strong)" : "var(--red-strong)" }}
             >
               {isCorrect ? "Nice!" : "Not quite"}
             </p>
             {!isCorrect && correctAnswerText && (
               <p
                 className="text-sm font-medium"
-                style={{ color: "var(--red-dark)" }}
+                style={{ color: "var(--red-strong)" }}
               >
                 Correct answer: {correctAnswerText}
               </p>

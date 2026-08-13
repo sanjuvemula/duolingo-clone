@@ -1,15 +1,16 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Mascot } from "@/components/mascot/Mascot";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
-/** Settings placeholder.
+/** Settings page.
  *
- * The brief lists "settings placeholders" under the Duolingo Experience
- * section and states a simple "Coming Soon" is sufficient, so the rows below
- * are deliberately inert: they show the shape a real settings page would take
- * without pretending to persist anything. Nothing here writes to the backend.
+ * Appearance is real and works; everything below it is a placeholder, which
+ * the brief explicitly allows ("a simple Coming Soon is sufficient"). The
+ * inert rows show the shape a full settings page would take without
+ * pretending to persist anything.
  *
- * A server component — there is no state, no data fetching and no event
- * handlers, so there is no reason to ship it to the client. */
+ * Still a server component — the only interactive part is ThemeToggle, which
+ * is a client component in its own right, so the page itself ships no JS. */
 export default function SettingsPage() {
   return (
     <AppShell>
@@ -28,6 +29,22 @@ export default function SettingsPage() {
             sections below show what would live here.
           </p>
         </div>
+
+        {/* Appearance — the one section that actually does something. */}
+        <section aria-label="Appearance">
+          <div className="mb-3 flex items-center gap-3">
+            <span className="text-2xl" aria-hidden="true">
+              🌙
+            </span>
+            <div>
+              <p className="font-display text-sm font-bold text-ink">Appearance</p>
+              <p className="text-xs text-ink-soft">
+                Auto follows your device setting.
+              </p>
+            </div>
+          </div>
+          <ThemeToggle />
+        </section>
 
         <div className="flex flex-col gap-3">
           {SETTINGS_SECTIONS.map((section) => (
@@ -71,11 +88,6 @@ const SETTINGS_SECTIONS = [
     icon: "🔊",
     title: "Sound effects",
     description: "Exercise audio and feedback sounds.",
-  },
-  {
-    icon: "🌙",
-    title: "Appearance",
-    description: "Dark mode and display preferences.",
   },
   {
     icon: "🌍",

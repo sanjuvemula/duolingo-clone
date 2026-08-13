@@ -71,7 +71,7 @@ export function SkillNode({ skill, offsetX }: SkillNodeProps) {
       style={{ transform: `translateX(${offsetX}px)` }}
     >
       {isCurrent && (
-        <span className="absolute -top-10 rounded-xl border-2 border-stone-light bg-white px-3 py-1 font-display text-xs font-extrabold tracking-wide text-green shadow-sm animate-bounce">
+        <span className="absolute -top-10 rounded-xl border-2 border-stone-light bg-paper-raised px-3 py-1 font-display text-xs font-extrabold tracking-wide text-green shadow-sm animate-bounce">
           START
         </span>
       )}

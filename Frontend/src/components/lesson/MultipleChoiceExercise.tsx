@@ -41,7 +41,7 @@ export function MultipleChoiceExercise({
         const background = isCorrectOption
           ? "var(--green-light)"
           : isWrongSelected
-            ? "#fbe4df"
+            ? "var(--red-light)"
             : isSelected
               ? "var(--blue-light)"
               : "var(--paper-raised)";

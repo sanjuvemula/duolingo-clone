@@ -68,7 +68,7 @@ export function FillBlankExercise({
                 isCorrectOption
                   ? { borderColor: "var(--green)", background: "var(--green-light)" }
                   : isWrongSelected
-                    ? { borderColor: "var(--red)", background: "#fbe4df" }
+                    ? { borderColor: "var(--red)", background: "var(--red-light)" }
                     : isSelected
                       ? { borderColor: "var(--green)", background: "var(--green-light)" }
                       : undefined

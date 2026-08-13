@@ -11,6 +11,7 @@ from app.routes import (
     exercises_routes,
     leaderboard_routes,
     lessons_routes,
+    practice_routes,
     users_routes,
 )
 from app.services import achievement_service
@@ -41,6 +42,7 @@ app.include_router(courses_routes.router)
 app.include_router(lessons_routes.router)
 app.include_router(exercises_routes.router)
 app.include_router(leaderboard_routes.router)
+app.include_router(practice_routes.router)
 
 
 @app.on_event("startup")
