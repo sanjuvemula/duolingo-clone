@@ -22,6 +22,10 @@ from app.models.models import User
 
 MAX_HEARTS = 5
 
+# XP a learner is expected to earn per day. At 10 XP per correct answer and 5
+# exercises per lesson, this is one clean lesson.
+DAILY_XP_GOAL = 50
+
 # Real Duolingo regenerates roughly one heart every 4 hours. That is far too
 # slow to observe during a demo or review session, so this is deliberately
 # shortened — it's a demo-tuning constant, not a modelling claim.
@@ -55,6 +59,37 @@ def update_streak(user: User) -> User:
 
     user.last_active_date = datetime.utcnow()
     return user
+
+
+def add_xp(user: User, amount: int) -> User:
+    """Add XP to both the lifetime total and today's daily-goal tally.
+
+    The daily tally rolls over lazily: if the stored xp_today_date is not
+    today, the tally is reset before adding, so no scheduled job is needed to
+    clear it at midnight.
+    """
+    today = datetime.utcnow().date()
+
+    if user.xp_today_date is None or user.xp_today_date.date() != today:
+        user.xp_today = 0
+
+    user.xp_total += amount
+    user.xp_today = (user.xp_today or 0) + amount
+    user.xp_today_date = datetime.utcnow()
+    return user
+
+
+def xp_earned_today(user: User) -> int:
+    """Today's tally, or 0 if the stored tally belongs to an earlier day.
+
+    Read-side counterpart to add_xp's rollover — lets a GET report the right
+    number without writing to the row.
+    """
+    if user.xp_today_date is None:
+        return 0
+    if user.xp_today_date.date() != datetime.utcnow().date():
+        return 0
+    return user.xp_today or 0
 
 
 def apply_heart_regen(user: User) -> User:

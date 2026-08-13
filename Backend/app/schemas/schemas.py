@@ -49,6 +49,11 @@ class UserResponse(UserBase):
     seconds_until_next_heart: Optional[int] = None
     heart_refill_gem_cost: int
 
+    # Daily goal. xp_today is today's tally only — it reads 0 once the stored
+    # tally belongs to an earlier day.
+    xp_today: int
+    daily_xp_goal: int
+
 
 class HeartsRefillResponse(BaseModel):
     """Result of POST /users/{id}/hearts/refill."""
@@ -176,6 +181,9 @@ class SkillWithProgress(SkillResponse):
     frontend can navigate directly to /lesson/{id} on click."""
     status: str = "locked"
     crowns: int = 0
+    # Total lessons in this skill — the denominator for the crown progress
+    # ring, so the frontend can show a real fraction rather than full/empty.
+    lesson_count: int = 0
     lesson_id: Optional[int] = None
 
 

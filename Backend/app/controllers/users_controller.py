@@ -40,6 +40,8 @@ def _to_response(user: User) -> UserResponse:
         max_hearts=user_service.MAX_HEARTS,
         seconds_until_next_heart=user_service.seconds_until_next_heart(user),
         heart_refill_gem_cost=user_service.HEART_REFILL_GEM_COST,
+        xp_today=user_service.xp_earned_today(user),
+        daily_xp_goal=user_service.DAILY_XP_GOAL,
     )
 
 

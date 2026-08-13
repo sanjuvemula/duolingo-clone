@@ -11,26 +11,35 @@ changes the skill tree" in the eval interview.
 """
 
 from app.models.models import Exercise, User
+from app.services.user_service import add_xp
 
 XP_PER_CORRECT_ANSWER = 10
+
+
+def _normalize(text: str) -> str:
+    """Casefold and collapse all runs of whitespace to a single space.
+
+    Collapsing whitespace (rather than just .strip()) is what makes word_bank
+    work: the frontend joins tapped word tiles with spaces, so a stray double
+    space between tiles must not fail an otherwise perfect answer.
+    """
+    return " ".join(text.split()).lower()
 
 
 def check_answer(exercise: Exercise, submitted_answer) -> bool:
     """Compare a submitted answer against Exercise.correct_answer.
 
-    Two exercise types need special handling, everything else is a plain
-    equality check:
+    Answer shapes by exercise type:
 
-    - multiple_choice / translate: correct_answer is a plain string. We
-      normalize with .strip().lower() so "Hello" / " hello " / "HELLO"
-      all count as correct — matters most for `translate`, where the user
-      is typing free text, not picking from a fixed list.
+    - multiple_choice / fill_blank / type_answer / word_bank: correct_answer
+      is a plain string, compared with whitespace and case normalized. This
+      matters most for type_answer (free typing) and word_bank (tiles joined
+      with spaces).
 
-    - match: correct_answer is a list of [korean, english] pairs. The pairs
-      are compared as a *set* of tuples, not a list, because the pairing UI
-      lets the user connect them in any order — [[a,b],[c,d]] and
-      [[c,d],[a,b]] represent the same completed match and must both count
-      as correct.
+    - match: correct_answer is a list of [korean, english] pairs, compared as
+      a *set* of tuples rather than a list, because the pairing UI lets the
+      user connect them in any order — [[a,b],[c,d]] and [[c,d],[a,b]] are
+      the same completed match and must both count as correct.
     """
     correct_answer = exercise.correct_answer
 
@@ -43,9 +52,15 @@ def check_answer(exercise: Exercise, submitted_answer) -> bool:
             return False
         return correct_set == submitted_set
 
-    # multiple_choice, translate, and any other plain-string exercise type
+    # word_bank arrives as an ordered list of tapped tiles; the sentence it
+    # spells is what gets compared, so join before normalizing.
+    if exercise.type == "word_bank" and isinstance(submitted_answer, list):
+        if not all(isinstance(word, str) for word in submitted_answer):
+            return False
+        submitted_answer = " ".join(submitted_answer)
+
     if isinstance(correct_answer, str) and isinstance(submitted_answer, str):
-        return correct_answer.strip().lower() == submitted_answer.strip().lower()
+        return _normalize(correct_answer) == _normalize(submitted_answer)
 
     # Fallback for any exercise type added later with a non-string answer
     # shape we haven't special-cased yet.
@@ -67,7 +82,9 @@ def submit_exercise_answer(db, user: User, exercise: Exercise, submitted_answer)
     xp_earned = 0
     if is_correct:
         xp_earned = XP_PER_CORRECT_ANSWER
-        user.xp_total += xp_earned
+        # Goes through add_xp rather than touching xp_total directly, so the
+        # daily-goal tally stays in step with the lifetime total.
+        add_xp(user, xp_earned)
     else:
         # Never let hearts go negative. Once a user is already at 0 hearts,
         # further wrong answers just don't do anything more damaging — the

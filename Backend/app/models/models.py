@@ -10,6 +10,11 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
     xp_total = Column(Integer, default=0)
+    # Today's XP tally, for the daily goal. Stored alongside the day it counts
+    # for, so a stale tally from a previous day reads as 0 instead of leaking
+    # into today's progress.
+    xp_today = Column(Integer, default=0)
+    xp_today_date = Column(DateTime, nullable=True)
     hearts = Column(Integer, default=5)
     streak = Column(Integer, default=0)
     last_active_date = Column(DateTime, nullable=True)
@@ -68,7 +73,8 @@ class Exercise(Base):
     __tablename__ = "exercises"
     id = Column(Integer, primary_key=True, index=True)
     lesson_id = Column(Integer, ForeignKey("lessons.id"))
-    type = Column(String, nullable=False)  # multiple_choice | translate | match | fill_blank | type_answer
+    # multiple_choice | word_bank | match | fill_blank | type_answer
+    type = Column(String, nullable=False)
     question = Column(String, nullable=False)
     options = Column(JSON, nullable=True)      # for multiple choice / word bank / match pairs
     correct_answer = Column(JSON, nullable=False)
