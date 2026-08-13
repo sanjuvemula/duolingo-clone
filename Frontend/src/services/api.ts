@@ -1,5 +1,11 @@
 import { API_BASE_URL } from "@/lib/constants";
-import type { CourseWithUnits, UserResponse } from "@/types/api";
+import type {
+  CourseWithUnits,
+  ExerciseSubmitResponse,
+  LessonCompleteResponse,
+  LessonWithExercises,
+  UserResponse,
+} from "@/types/api";
 
 /** Thrown for any non-2xx response so callers can distinguish "backend is
  * unreachable" (network error) from "backend answered with an error"
@@ -38,4 +44,39 @@ export function getSkillTree(
 
 export function getUser(userId: number): Promise<UserResponse> {
   return request(`/users/${userId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Lesson player (step 10)
+// ---------------------------------------------------------------------------
+
+export function getLesson(lessonId: number): Promise<LessonWithExercises> {
+  return request(`/lessons/${lessonId}`);
+}
+
+/** POST /exercises/{id}/submit. `answer`'s shape depends on the exercise
+ * type (see ExercisePublic) — the backend's ExerciseSubmitRequest just
+ * takes `{ answer: Any }`, so there's nothing to validate client-side
+ * beyond what exercise-type components already enforce before enabling
+ * the Check button (see lib/exercise.ts's isAnswerValid). */
+export function submitExerciseAnswer(
+  exerciseId: number,
+  userId: number,
+  answer: unknown
+): Promise<ExerciseSubmitResponse> {
+  return request(`/exercises/${exerciseId}/submit?user_id=${userId}`, {
+    method: "POST",
+    body: JSON.stringify({ answer }),
+  });
+}
+
+/** POST /lessons/{id}/complete. Called exactly once per lesson, after the
+ * last exercise has been submitted — see useLessonPlayer's continueExercise. */
+export function completeLesson(
+  lessonId: number,
+  userId: number
+): Promise<LessonCompleteResponse> {
+  return request(`/lessons/${lessonId}/complete?user_id=${userId}`, {
+    method: "POST",
+  });
 }
