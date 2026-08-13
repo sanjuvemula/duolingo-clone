@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { HeartIcon } from "@/components/learning-path/icons";
 
@@ -10,6 +13,18 @@ interface LessonHeaderProps {
 
 export function LessonHeader({ current, total, hearts }: LessonHeaderProps) {
   const progress = total > 0 ? Math.min(1, current / total) : 0;
+  const [pulsing, setPulsing] = useState(false);
+  const prevHearts = useRef(hearts);
+
+  useEffect(() => {
+    if (hearts < prevHearts.current) {
+      setPulsing(true);
+      const timer = setTimeout(() => setPulsing(false), 500);
+      prevHearts.current = hearts;
+      return () => clearTimeout(timer);
+    }
+    prevHearts.current = hearts;
+  }, [hearts]);
 
   return (
     <header className="sticky top-0 z-10 border-b border-stone-light bg-paper/95 px-6 py-4 backdrop-blur">
@@ -39,6 +54,7 @@ export function LessonHeader({ current, total, hearts }: LessonHeaderProps) {
           className="flex items-center gap-1 font-display text-sm font-bold text-ink"
           role="status"
           aria-label={`${hearts} hearts remaining`}
+          style={pulsing ? { animation: "heart-pulse 0.5s ease-out" } : undefined}
         >
           <span style={{ color: "var(--cinnabar)" }}>
             <HeartIcon size={20} />

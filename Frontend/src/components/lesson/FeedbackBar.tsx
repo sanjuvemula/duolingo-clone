@@ -53,6 +53,7 @@ export function FeedbackBar({
       style={{
         background: isCorrect ? "var(--celadon-light)" : "#fbe4df",
         borderColor: isCorrect ? "var(--celadon)" : "var(--cinnabar)",
+        animation: "slide-up 0.25s ease-out",
       }}
     >
       <div className="mx-auto flex max-w-md items-center justify-between gap-4">
