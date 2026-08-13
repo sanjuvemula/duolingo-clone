@@ -26,8 +26,8 @@ frontend has nothing to render without it.
 
 ### Backend
 
-Run everything from `Backend/`. The database URL is the relative path `sqlite:///./duolingo.db`,
-so the working directory matters.
+Run everything from `Backend/`. The database URL defaults to the relative path
+`sqlite:///./duolingo.db`, so the working directory matters. Set `DATABASE_URL` to override it.
 
 ```bash
 cd Backend
@@ -54,6 +54,40 @@ npm run dev
 
 The app is at http://localhost:3000. It reads the API base URL from `NEXT_PUBLIC_API_URL`; copy
 `.env.example` to `.env.local` to change it from the `http://127.0.0.1:8000` default.
+
+---
+
+## Deployment
+
+Both services read their environment-specific settings from environment variables, so no code
+changes are needed to deploy.
+
+| Variable | Service | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | Backend | Where SQLite lives. Must point at a *persistent* path in production. |
+| `CORS_ORIGINS` | Backend | Comma-separated browser origins to allow, in addition to localhost. Set this to the deployed frontend URL. |
+| `NEXT_PUBLIC_API_URL` | Frontend | Base URL of the deployed API. |
+
+**Backend (Render).** `Backend/render.yaml` is a ready blueprint — point Render at the repo with
+`rootDir` set to `Backend`. The critical part is the mounted disk:
+
+- Render's filesystem is ephemeral. Without a disk, `duolingo.db` is recreated empty on every
+  deploy *and* every container restart, so all learner progress disappears. The blueprint mounts a
+  1 GB disk at `/var/data` and sets `DATABASE_URL=sqlite:////var/data/duolingo.db`, which is what
+  keeps SQLite viable in production and lets the project meet the brief's "use SQLite" requirement
+  without switching to Postgres.
+- Note the **four** slashes: `sqlite://` (scheme) + `/var/data/…` (absolute path). Three slashes
+  means a relative path and silently gives you a different, ephemeral database.
+- The start command runs `python seed/seed_data.py --if-empty` before uvicorn. The `--if-empty`
+  flag seeds a fresh disk on first boot and does nothing afterwards, so restarts never wipe
+  progress — unlike the bare `python seed/seed_data.py`, which always drops and rebuilds.
+
+**Frontend (Vercel).** Import the repo with the root directory set to `Frontend`, and set
+`NEXT_PUBLIC_API_URL` to the deployed backend URL.
+
+**Order matters.** Deploy the backend first to get its URL, set `NEXT_PUBLIC_API_URL` on the
+frontend, then set `CORS_ORIGINS` on the backend to the frontend's URL. Skipping that last step
+is the usual cause of a deployed app where every request fails with an opaque CORS error.
 
 ---
 
@@ -244,4 +278,5 @@ ORM constructor calls.
   skill is complete. Per-lesson tracking would need its own table.
 - **SQLite with no migration tool.** Schema changes are applied by re-running the seed script,
   which drops and recreates every table. Fine for disposable demo data; a real deployment would
-  need Alembic.
+  need Alembic. In production the `--if-empty` flag prevents that drop from ever running against
+  a database that already has content.

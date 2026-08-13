@@ -399,5 +399,35 @@ def seed() -> None:
         db.close()
 
 
-if __name__ == "__main__":
+def seed_if_empty() -> bool:
+    """Seed only when the database has no course yet. Returns whether it ran.
+
+    This is what a deployment's start command uses. A fresh persistent disk has
+    no database at all, so something must seed it on first boot — but calling
+    seed() unconditionally would drop every table on each restart and delete
+    the learner's progress, since containers restart for reasons other than a
+    new release. Checking for content first makes the call safe to repeat.
+    """
+    Base.metadata.create_all(bind=engine)  # tables must exist before querying
+
+    db = SessionLocal()
+    try:
+        already_seeded = db.query(Course).first() is not None
+    finally:
+        db.close()
+
+    if already_seeded:
+        print("Database already has content — skipping seed.")
+        return False
+
     seed()
+    return True
+
+
+if __name__ == "__main__":
+    # --if-empty is for deployments (safe to run on every boot); the bare form
+    # is for local development, where a full rebuild is usually what you want.
+    if "--if-empty" in sys.argv:
+        seed_if_empty()
+    else:
+        seed()

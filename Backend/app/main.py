@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,9 +17,20 @@ from app.services import achievement_service
 
 app = FastAPI(title="Duolingo Clone API")
 
+# Allowed browser origins. Local dev hosts are always permitted; a deployment
+# adds its frontend URL via the CORS_ORIGINS env var (comma-separated), since
+# a hardcoded localhost-only list would block every request from the deployed
+# frontend with an opaque CORS error.
+DEV_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+EXTRA_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=DEV_ORIGINS + EXTRA_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

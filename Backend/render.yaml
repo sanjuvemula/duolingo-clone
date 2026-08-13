@@ -1,0 +1,40 @@
+# Render blueprint for the backend.
+#
+# Deploy with: New > Blueprint, point at this repo, set rootDir to Backend/.
+#
+# The disk is the important part. Render's filesystem is ephemeral — without a
+# mounted disk, duolingo.db would be recreated empty on every deploy and every
+# container restart, so all learner progress would vanish. Mounting a disk at
+# /var/data and pointing DATABASE_URL there keeps SQLite viable in production,
+# which is what lets this project meet the brief's "use SQLite" requirement
+# without swapping to Postgres.
+#
+# Note the four slashes in the DATABASE_URL: sqlite:// (scheme) + /var/data/...
+# (absolute path). Three slashes would mean a relative path and silently give
+# you a different, ephemeral database.
+
+services:
+  - type: web
+    name: duolingo-clone-api
+    runtime: python
+    rootDir: Backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # --if-empty makes this safe to run on every boot: it seeds a fresh disk on
+    # first deploy and does nothing thereafter, so restarts never wipe progress.
+    startCommand: python seed/seed_data.py --if-empty && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    disk:
+      name: duolingo-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////var/data/duolingo.db
+      # Set this to the deployed frontend origin (no trailing slash) once
+      # Vercel has given you a URL, e.g. https://duolingo-clone.vercel.app
+      # Without it the browser blocks every API call with a CORS error.
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.11"
