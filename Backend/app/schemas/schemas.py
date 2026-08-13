@@ -69,8 +69,10 @@ class HeartsRefillResponse(BaseModel):
 # `options` and `correct_answer` are JSON columns because the shape depends
 # on exercise type:
 #   multiple_choice -> options: list[str],        correct_answer: str
-#   translate        -> options: null,             correct_answer: str
+#   word_bank        -> options: list[str] tiles,  correct_answer: str (sentence)
 #   match            -> options: list[[str,str]],  correct_answer: list[[str,str]]
+#   fill_blank       -> options: list[str],        correct_answer: str
+#   type_answer      -> options: null,             correct_answer: str
 # `Any` is intentional here rather than a stricter union, since Pydantic
 # can't validate "shape depends on a sibling field's value" without a custom
 # validator, and P0 doesn't need that strictness.
@@ -141,6 +143,9 @@ class LessonCompleteResponse(BaseModel):
     hearts: int
     streak: int
     newly_unlocked_skill_id: Optional[int] = None
+    # Badges earned by *this* completion, so the UI can celebrate them on the
+    # lesson-complete screen. Empty on most completions.
+    newly_earned_achievements: list["AchievementResponse"] = []
 
 
 # ---------------------------------------------------------------------------
@@ -238,3 +243,21 @@ class LeaderboardEntry(BaseModel):
     name: str
     xp_total: int
     is_current_user: bool
+
+# ---------------------------------------------------------------------------
+# Achievements
+# ---------------------------------------------------------------------------
+
+class AchievementResponse(BaseModel):
+    """One badge, with this user's earned state merged in.
+
+    The full catalog is returned rather than only earned badges, so the
+    profile page can render locked ones as goals. `earned_at` is None exactly
+    when `earned` is False.
+    """
+    code: str
+    title: str
+    description: str
+    icon: str
+    earned: bool
+    earned_at: Optional[datetime] = None

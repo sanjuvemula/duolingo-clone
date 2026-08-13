@@ -23,6 +23,7 @@ deliberate P0 scope cut given the deadline, not an oversight.
 from sqlalchemy.orm import Session
 
 from app.models.models import Lesson, Skill, Unit, User, UserProgress
+from app.services import achievement_service
 from app.services.user_service import update_streak
 
 
@@ -53,6 +54,12 @@ def complete_lesson(db: Session, user: User, lesson: Lesson) -> dict:
     update_streak(user)
     db.add(user)
 
+    # Achievements are evaluated last, after crowns, status and streak have
+    # all been updated on this session — the rules read those values, so
+    # checking earlier would award against a stale state (e.g. miss the
+    # "complete your first skill" badge on the very lesson that completes it).
+    newly_earned = achievement_service.evaluate(db, user)
+
     db.commit()
     db.refresh(progress)
     db.refresh(user)
@@ -66,6 +73,17 @@ def complete_lesson(db: Session, user: User, lesson: Lesson) -> dict:
         "hearts": user.hearts,
         "streak": user.streak,
         "newly_unlocked_skill_id": newly_unlocked_skill_id,
+        "newly_earned_achievements": [
+            {
+                "code": row.code,
+                "title": row.title,
+                "description": row.description,
+                "icon": row.icon,
+                "earned": True,
+                "earned_at": None,  # just now; the client doesn't render a time here
+            }
+            for row in newly_earned
+        ],
     }
 
 

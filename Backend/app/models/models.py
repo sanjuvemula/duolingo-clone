@@ -83,6 +83,31 @@ class Exercise(Base):
     lesson = relationship("Lesson", back_populates="exercises")
 
 
+class Achievement(Base):
+    """Catalog of badges the app can award. Rows are upserted from the
+    ACHIEVEMENTS list in achievement_service.py (see ensure_catalog) rather
+    than hand-seeded, so the catalog can't drift from the code that checks
+    it."""
+    __tablename__ = "achievements"
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    icon = Column(String, nullable=False)  # a single emoji -- no icon asset pipeline needed
+
+
+class UserAchievement(Base):
+    """One earned badge. A row existing is the fact of record — "this user
+    earned this achievement at this time" — rather than a computed flag, so
+    earned_at is real and query-able (e.g. "what did they unlock this
+    week")."""
+    __tablename__ = "user_achievements"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    achievement_id = Column(Integer, ForeignKey("achievements.id"))
+    earned_at = Column(DateTime, default=datetime.utcnow)
+
+
 class UserProgress(Base):
     __tablename__ = "user_progress"
     id = Column(Integer, primary_key=True, index=True)

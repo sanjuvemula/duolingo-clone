@@ -113,7 +113,10 @@ courses
                     └── exercises  (lesson_id → lessons.id)
 
 users
-  └── user_progress    (user_id → users.id, skill_id → skills.id)
+  ├── user_progress      (user_id → users.id, skill_id → skills.id)
+  └── user_achievements  (user_id → users.id, achievement_id → achievements.id)
+
+achievements             (catalog, no parent)
 ```
 
 | Table | Columns |
@@ -125,6 +128,8 @@ users
 | `lessons` | `id`, `title`, `order`, `skill_id` |
 | `exercises` | `id`, `lesson_id`, `type`, `question`, `options` (JSON), `correct_answer` (JSON), `order` |
 | `user_progress` | `id`, `user_id`, `skill_id`, `status`, `crowns` |
+| `achievements` | `id`, `code` (unique), `title`, `description`, `icon` |
+| `user_achievements` | `id`, `user_id`, `achievement_id`, `earned_at` |
 
 **Exercise types.** `exercises.type` is one of five, and the shape of `options` /
 `correct_answer` depends on it:
@@ -144,9 +149,15 @@ users
   `locked | available | completed` and `crowns` counts completed lessons within that skill.
 - **`exercises.options` and `correct_answer` are JSON columns, not normalized child tables.**
   Their shape depends on `type`: multiple choice needs a list of strings, match needs a list of
-  pairs, translate needs neither. A normalized `exercise_options` table would need to model all
-  three shapes at once, and nothing in the app ever queries *across* options — they are always
+  pairs, type-the-answer needs neither. A normalized `exercise_options` table would have to model
+  all those shapes at once, and nothing in the app ever queries *across* options — they are always
   read as a whole with their exercise. JSON keeps the read path a single row.
+- **The achievement catalog lives in code, not seed data.** Each entry in
+  `achievement_service.ACHIEVEMENTS` pairs a badge's text with the predicate that earns it;
+  `ensure_catalog()` upserts that list into the `achievements` table at startup. Splitting the two
+  apart — rows in a seed file, `if` statements in a service — is how they drift. A row in
+  `user_achievements` is the fact of record that a badge was earned, so `earned_at` is real
+  rather than recomputed.
 - **Three timestamps on `users`, on purpose.** `last_active_date` means "the calendar day the
   learner was last active" and drives streak maths; `hearts_updated_at` means "when the heart
   count last changed" and drives regeneration; `xp_today_date` means "the day the `xp_today`
@@ -168,6 +179,7 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 | `GET` | `/health` | Liveness check. |
 | `GET` | `/users/{user_id}` | Learner state: XP, hearts, streak, gems, daily-goal progress, and the heart-regen countdown. Applies pending heart regeneration as a side effect. |
 | `POST` | `/users/{user_id}/hearts/refill` | Spend gems to restore hearts to full. `400` if already full or too few gems. |
+| `GET` | `/users/{user_id}/achievements` | Full badge catalog with this learner's earned state merged in — locked badges included, so the profile can show them as goals. |
 | `GET` | `/courses/{course_id}/skill-tree?user_id=` | The whole tree — units, skills, and this learner's per-skill status and crowns merged in. |
 | `GET` | `/lessons/{lesson_id}` | A lesson with its exercises, **without** correct answers. |
 | `POST` | `/exercises/{exercise_id}/submit?user_id=` | Check one answer. Awards XP or removes a heart, and reports whether the lesson has now failed. |
@@ -189,6 +201,10 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
   count the skill becomes `completed` and the next skill in course order unlocks.
 - **Streak** — advances at most once per calendar day, on lesson completion. Same day is a no-op,
   the next day increments, and any larger gap resets it to 1.
+- **Achievements** — eight badges across XP, streak, crown and skill-completion milestones.
+  Evaluated after a lesson completes, once crowns, status and streak have all been updated, so a
+  badge earned *by* that lesson is caught on the same request. Also evaluated on read, so adding a
+  new badge grants it retroactively to learners who already meet its condition.
 
 ---
 
@@ -220,6 +236,9 @@ ORM constructor calls.
 - **Gems are mocked.** They are seeded and can be spent on heart refills, but are never earned.
 - **Audio and pronunciation exercises are out of scope**, as the brief allows.
 - **One course only.** The schema supports many, but only Korean is seeded.
+- **Settings is a placeholder.** `/settings` renders the shape a real settings page would take,
+  with every row marked "SOON" and nothing wired to the backend. The brief states a "Coming Soon"
+  placeholder is sufficient here.
 - **Progress is tracked per skill, not per lesson.** `user_progress.crowns` counts how many
   lessons in a skill are done, not which ones. Replaying a lesson grants another crown until the
   skill is complete. Per-lesson tracking would need its own table.

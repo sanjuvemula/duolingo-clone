@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.base import Base
-from app.database.connection import engine
+from app.database.connection import SessionLocal, engine
 from app.models import models  # noqa: F401
 from app.routes import (
     courses_routes,
@@ -11,6 +11,7 @@ from app.routes import (
     lessons_routes,
     users_routes,
 )
+from app.services import achievement_service
 
 app = FastAPI(title="Duolingo Clone API")
 
@@ -32,6 +33,15 @@ app.include_router(leaderboard_routes.router)
 @app.on_event("startup")
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
+
+    # Sync the achievement catalog from code into the DB. Done here rather
+    # than in the seed script so the badge list stays correct even on a
+    # database that was seeded before a badge was added.
+    db = SessionLocal()
+    try:
+        achievement_service.ensure_catalog(db)
+    finally:
+        db.close()
 
 
 @app.get("/")

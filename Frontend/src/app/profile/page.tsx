@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { CURRENT_USER_ID } from "@/lib/constants";
-import { ApiError, getUser } from "@/services/api";
-import type { UserResponse } from "@/types/api";
+import { ApiError, getAchievements, getUser } from "@/services/api";
+import type { AchievementResponse, UserResponse } from "@/types/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { StatCard } from "@/components/gamification/StatCard";
+import { AchievementsGrid } from "@/components/gamification/AchievementsGrid";
 import {
   FlameIcon,
   GemIcon,
@@ -15,16 +16,20 @@ import {
 
 export default function ProfilePage() {
   const [user, setUser] = useState<UserResponse | null>(null);
+  const [achievements, setAchievements] = useState<AchievementResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    getUser(CURRENT_USER_ID)
-      .then((data) => {
+    // Both requests are independent, so they go out together rather than
+    // waterfalling — the page needs both before it can render anyway.
+    Promise.all([getUser(CURRENT_USER_ID), getAchievements(CURRENT_USER_ID)])
+      .then(([userData, achievementData]) => {
         if (!cancelled) {
-          setUser(data);
+          setUser(userData);
+          setAchievements(achievementData);
           setLoading(false);
         }
       })
@@ -127,6 +132,10 @@ export default function ProfilePage() {
             color="var(--blue)"
           />
         </div>
+
+        {/* Achievements — required by the brief's "learner profile page with
+            stats (streak, total XP, achievements)". */}
+        <AchievementsGrid achievements={achievements} />
 
         {/* Last active */}
         {user.last_active_date && (

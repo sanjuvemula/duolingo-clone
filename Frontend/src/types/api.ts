@@ -79,12 +79,10 @@ export interface CourseWithUnits {
 // as the skill-tree types above.
 // ---------------------------------------------------------------------------
 
-/** Backend/seed/seed_data.py only ever creates these three, and
- * exercise_service.check_answer only special-cases these three (everything
- * else falls back to a plain equality check) — but the type stays a plain
- * `string` rather than a closed union so a backend-added type doesn't
- * become a frontend compile error. Components branch on the known three and
- * render a fallback message for anything else (see LessonPlayerScreen). */
+/** The five types the seed creates and the player renders. The union stays
+ * open with `| string` so a backend-added type doesn't become a frontend
+ * compile error — components branch on the known five and render a fallback
+ * message for anything else (see LessonPlayerScreen). */
 export type ExerciseType =
   | "multiple_choice"
   | "word_bank"
@@ -157,4 +155,22 @@ export interface LeaderboardEntry {
   name: string;
   xp_total: number;
   is_current_user: boolean;
+}
+// ---------------------------------------------------------------------------
+// Achievements
+// ---------------------------------------------------------------------------
+
+/** One badge from GET /users/{id}/achievements. The endpoint returns the
+ * whole catalog, earned or not, so the profile can render locked badges as
+ * goals rather than hiding them. `earned_at` is null exactly when
+ * `earned` is false. */
+export interface AchievementResponse {
+  code: string;
+  title: string;
+  description: string;
+  /** A single emoji — the backend stores the glyph itself, so there's no
+   * icon asset pipeline or name-to-component mapping to keep in sync. */
+  icon: string;
+  earned: boolean;
+  earned_at: string | null;
 }

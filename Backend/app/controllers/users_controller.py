@@ -20,14 +20,15 @@ from sqlalchemy.orm import Session
 
 from app.middleware.current_user import get_user_or_404
 from app.models.models import User
-from app.schemas.schemas import HeartsRefillResponse, UserResponse
-from app.services import user_service
+from app.schemas.schemas import AchievementResponse, HeartsRefillResponse, UserResponse
+from app.services import achievement_service, user_service
 
 
 def _to_response(user: User) -> UserResponse:
-    """UserResponse carries three fields that aren't columns — the heart-economy
-    rules and the live regen countdown — so it's built explicitly here rather
-    than straight off the ORM object via model_validate."""
+    """UserResponse carries several fields that aren't columns — the
+    heart-economy rules, the live regen countdown and the daily goal — so it's
+    built explicitly here rather than straight off the ORM object via
+    model_validate."""
     return UserResponse(
         id=user.id,
         name=user.name,
@@ -73,3 +74,19 @@ def refill_hearts(db: Session, user_id: int) -> HeartsRefillResponse:
         gems=user.gems,
         gems_spent=user_service.HEART_REFILL_GEM_COST,
     )
+
+def get_achievements(db: Session, user_id: int) -> list[AchievementResponse]:
+    """Full badge catalog with earned state merged in.
+
+    Evaluates before listing so a badge whose condition is already met shows
+    as earned even if the user hasn't completed a lesson since the rule was
+    added — without this, adding a new achievement would leave existing
+    learners unable to earn it retroactively.
+    """
+    user = get_user_or_404(db, user_id)
+
+    newly_earned = achievement_service.evaluate(db, user)
+    if newly_earned:
+        db.commit()
+
+    return [AchievementResponse(**row) for row in achievement_service.list_for_user(db, user)]

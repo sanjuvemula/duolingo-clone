@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "@/lib/constants";
 import type {
+  AchievementResponse,
   CourseWithUnits,
   ExerciseSubmitResponse,
   HeartsRefillResponse,
@@ -97,4 +98,15 @@ export function getLeaderboard(
   userId: number
 ): Promise<LeaderboardEntry[]> {
   return request(`/leaderboard?user_id=${userId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Achievements
+// ---------------------------------------------------------------------------
+
+/** GET /users/{id}/achievements — full catalog with earned state merged in. */
+export function getAchievements(
+  userId: number
+): Promise<AchievementResponse[]> {
+  return request(`/users/${userId}/achievements`);
 }
