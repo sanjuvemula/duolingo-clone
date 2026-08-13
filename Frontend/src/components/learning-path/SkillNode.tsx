@@ -88,7 +88,12 @@ export function SkillNode({ skill, offsetX }: SkillNodeProps) {
         >
           <div
             className="flex h-14 w-14 items-center justify-center rounded-full text-white shadow-md"
-            style={{ background: fillColor }}
+            style={{
+              background: fillColor,
+              ...(isCurrent
+                ? { animation: "celebrate-in 0.5s ease-out both", boxShadow: "0 0 16px var(--gold)" }
+                : {}),
+            }}
           >
             {isLocked ? (
               <LockIcon size={26} className="text-white/90" />
