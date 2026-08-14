@@ -1,5 +1,15 @@
 # Duolingo Clone
 
+### ▶ Live demo — **https://duolingo-clone-sanjuvemulas-projects.vercel.app**
+
+> **Please use the link above.** It always serves the latest build. An older, deployment-pinned
+> Vercel URL (`duolingo-clone-gsi2fcau4-…`) may be circulating; Vercel deployment URLs are
+> immutable snapshots, so that one still loads but renders an earlier version of the interface.
+>
+> The API is on Render's free tier and sleeps when idle, so **the very first request can take
+> up to a minute** while the container wakes. Subsequent loads are instant. If the path shows
+> "Loading your path…" on arrival, that's the cold start — give it a moment.
+
 A functional clone of the Duolingo web app: a learner moves through a skill tree, plays lessons
 made of interactive exercises, earns XP, keeps a streak, loses and regains hearts, and has all of
 that progress persisted server-side.
