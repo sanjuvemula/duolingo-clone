@@ -10,6 +10,7 @@ import type {
   PracticeSetResponse,
   PracticeSubmitResponse,
   UserResponse,
+  UserUpdateRequest,
 } from "@/types/api";
 
 /** Thrown for any non-2xx response so callers can distinguish "backend is
@@ -49,6 +50,24 @@ export function getSkillTree(
 
 export function getUser(userId: number): Promise<UserResponse> {
   return request(`/users/${userId}`);
+}
+
+/** PATCH /users/{id} — edits the learner's display name and/or avatar colour.
+ *
+ * Send only the fields that changed. Resolves with the learner's *full*
+ * refreshed state rather than an echo of the patch, so callers replace their
+ * cached user outright instead of merging — the response also carries derived
+ * values (heart countdown, daily goal) that the request body can't supply.
+ *
+ * Throws ApiError(400) for a blank name, an unknown colour, or an empty body. */
+export function updateUser(
+  userId: number,
+  changes: UserUpdateRequest
+): Promise<UserResponse> {
+  return request(`/users/${userId}`, {
+    method: "PATCH",
+    body: JSON.stringify(changes),
+  });
 }
 
 /** POST /users/{id}/hearts/refill — spends gems to restore hearts to full.

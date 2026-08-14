@@ -31,6 +31,16 @@ export interface UserResponse {
    * earlier day, so the daily goal resets without a scheduled job. */
   xp_today: number;
   daily_xp_goal: number;
+  /** Token name ("blue", "green", …) resolved to a CSS variable, so the
+   * avatar follows the active theme. Backend allow-lists the values. */
+  avatar_color: string;
+}
+
+/** Body for PATCH /users/{id} — matches schemas.UserUpdateRequest. Both fields
+ * optional so the client sends only what changed; email is not editable. */
+export interface UserUpdateRequest {
+  name?: string;
+  avatar_color?: string;
 }
 
 /** Matches schemas.HeartsRefillResponse — POST /users/{id}/hearts/refill. */
@@ -47,6 +57,10 @@ export interface SkillWithProgress {
   title: string;
   order: number;
   unit_id: number;
+  /** Illustration key ("greeting", "food", …), resolved to an inline SVG by
+   * components/learning-path/SkillIcon. Unknown keys fall back to a star, so
+   * this stays a plain string rather than a union the backend could outgrow. */
+  icon: string;
   status: SkillStatus;
   crowns: number;
   /** Denominator for the crown progress ring — total lessons in this skill. */

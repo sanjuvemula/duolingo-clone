@@ -35,6 +35,49 @@ HEART_REGEN_MINUTES = 10
 # only thing that consumes them.
 HEART_REFILL_GEM_COST = 350
 
+# Avatar colours a learner may choose. An allow-list rather than a free-form
+# string because the value is rendered as a CSS variable name — accepting
+# arbitrary input would let a stored value inject into a style attribute, and
+# would also let the avatar reference a token that doesn't exist in the theme.
+#
+# These five are exactly the frontend's accent tokens, which is why the list
+# stops here: each one keeps its value in both light and dark mode, so a
+# learner's choice never becomes unreadable when they flip the theme.
+AVATAR_COLORS = ("blue", "green", "purple", "red", "gold")
+
+
+def update_profile(
+    user: User,
+    name: str | None = None,
+    avatar_color: str | None = None,
+) -> User:
+    """Apply an edit to the learner's own profile fields.
+
+    Both arguments are optional and only a non-None one is written, so a PATCH
+    that carries just a name leaves the avatar alone. Raises ValueError for an
+    empty name or an unrecognised colour; the controller turns that into a 400.
+    """
+    if name is None and avatar_color is None:
+        raise ValueError("Nothing to update — send a name, an avatar_color, or both.")
+
+    if name is not None:
+        # Pydantic enforces the length bounds, but it counts the raw string:
+        # "   " passes min_length=1 and would render as a nameless profile.
+        cleaned = name.strip()
+        if not cleaned:
+            raise ValueError("Name cannot be blank.")
+        user.name = cleaned
+
+    if avatar_color is not None:
+        if avatar_color not in AVATAR_COLORS:
+            raise ValueError(
+                f"Unknown avatar colour '{avatar_color}'. "
+                f"Choose one of: {', '.join(AVATAR_COLORS)}."
+            )
+        user.avatar_color = avatar_color
+
+    return user
+
 
 def update_streak(user: User) -> User:
     """Call once per day the user completes at least one lesson.

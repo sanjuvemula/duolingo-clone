@@ -46,6 +46,12 @@
      until that line clears AA on its tinted background. */
   --green-strong: #3a7d00;
   --red-strong: #b91c1c;
+
+  /* Text on a --stone-light pill (the "SOON" placeholder badges). The obvious
+     choice, --stone, measures 1.6:1 against that background in dark mode —
+     legible in neither theme. These are darkened/lightened until the 12px bold
+     label clears WCAG AA (4.5:1) on --stone-light in both. */
+  --badge-ink: #5e5e5e;
 }
 
 /*
@@ -83,6 +89,7 @@
     /* Light tints, so accent text stays legible on the dark tinted panels. */
     --green-strong: #b7f28a;
     --red-strong: #ffb3b3;
+    --badge-ink: #b0bec5;
   }
 }
 
@@ -104,6 +111,7 @@
   /* Light tints, so accent text stays legible on the dark tinted panels. */
   --green-strong: #b7f28a;
   --red-strong: #ffb3b3;
+  --badge-ink: #b0bec5;
 }
 
 @theme inline {
@@ -545,7 +553,13 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: 8px 16px;
+    /* Five tabs share the bar, so each takes an equal fraction of the width
+       and the horizontal padding stays small. min-width:0 lets a flex item
+       shrink below its content width, which is what stops the longest label
+       from forcing the row wider than the screen. */
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 4px;
     border-radius: 12px;
     text-decoration: none;
     color: var(--ink-soft);
@@ -569,6 +583,12 @@ body {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.5px;
+    /* Never wrap to a second line — that would make one tab taller than its
+       neighbours and knock the whole 72px bar out of alignment. */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

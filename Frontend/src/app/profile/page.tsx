@@ -8,6 +8,10 @@ import { AppShell } from "@/components/layout/AppShell";
 import { StatCard } from "@/components/gamification/StatCard";
 import { AchievementsGrid } from "@/components/gamification/AchievementsGrid";
 import {
+  ProfileEditModal,
+  avatarColorVar,
+} from "@/components/gamification/ProfileEditModal";
+import {
   FlameIcon,
   GemIcon,
   HeartIcon,
@@ -19,6 +23,7 @@ export default function ProfilePage() {
   const [achievements, setAchievements] = useState<AchievementResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,8 +88,15 @@ export default function ProfilePage() {
     <AppShell>
       {/* Page header */}
       <header className="border-b-2 border-stone-light bg-paper-raised px-6 py-5">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto flex max-w-2xl items-center justify-between">
           <h1 className="font-display text-lg font-bold text-ink">Profile</h1>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="rounded-full border-2 border-stone-light px-4 py-1.5 font-display text-xs font-bold uppercase tracking-wide text-ink-soft transition hover:bg-stone-light hover:text-ink"
+          >
+            Edit profile
+          </button>
         </div>
       </header>
 
@@ -93,7 +105,7 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center gap-3">
           <div
             className="flex h-24 w-24 items-center justify-center rounded-full text-white shadow-lg"
-            style={{ background: "var(--blue)" }}
+            style={{ background: avatarColorVar(user.avatar_color) }}
           >
             <span className="font-display text-3xl font-bold">{initials}</span>
           </div>
@@ -149,6 +161,14 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
+
+      {editing && (
+        <ProfileEditModal
+          user={user}
+          onClose={() => setEditing(false)}
+          onSaved={setUser}
+        />
+      )}
     </AppShell>
   );
 }

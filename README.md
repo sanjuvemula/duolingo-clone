@@ -78,9 +78,31 @@ changes are needed to deploy.
   without switching to Postgres.
 - Note the **four** slashes: `sqlite://` (scheme) + `/var/data/…` (absolute path). Three slashes
   means a relative path and silently gives you a different, ephemeral database.
-- The start command runs `python seed/seed_data.py --if-empty` before uvicorn. The `--if-empty`
-  flag seeds a fresh disk on first boot and does nothing afterwards, so restarts never wipe
-  progress — unlike the bare `python seed/seed_data.py`, which always drops and rebuilds.
+- The start command runs `python seed/seed_data.py --if-stale` before uvicorn. See below.
+
+**Schema changes without a migration tool.** There is no Alembic here, and SQLite cannot add a
+column to an existing table via `create_all`. That leaves a real problem for a deployment with a
+persistent disk: shipping a release that adds a column would leave the old database in place and
+every request would fail with `no such column`. Simply reseeding on every boot is not an option
+either, since containers restart for reasons unrelated to a release.
+
+`--if-stale` resolves it with a version stamp. `seed_data.CONTENT_VERSION` is written into
+`app_meta` at seed time and compared at boot:
+
+| Stored version | Action |
+| --- | --- |
+| matches `CONTENT_VERSION` | Skip. This is every ordinary restart. |
+| differs | Rebuild once, then stamp the new version. |
+| absent, database empty | Seed. This is a fresh disk on first deploy. |
+| absent, database has content | Rebuild. A disk seeded before `app_meta` existed. |
+
+So **bump `CONTENT_VERSION` whenever the schema or the seed content changes**, and the next deploy
+repairs itself. The stamp is written inside the same transaction as the content it describes, so a
+seed that fails halfway rolls back and the next boot retries rather than trusting a half-built
+database.
+
+This is only acceptable because every row here is demo data the seed script itself authored —
+there is no learner-authored content to lose. A production app would run migrations instead.
 
 **Frontend (Vercel).** Import the repo with the root directory set to `Frontend`, and set
 `NEXT_PUBLIC_API_URL` to the deployed backend URL.
@@ -118,7 +140,8 @@ larger transaction later without having already committed half of it.
 ### Frontend — data flows one way
 
 ```
-app/            App Router pages (path, lesson, practice, profile, leaderboard, settings).
+app/            App Router pages (path, lesson, practice, profile, leaderboard, shop,
+                quests, settings).
 components/     Presentational, grouped by feature (layout, learning-path, lesson, gamification).
 hooks/          Stateful logic: useSkillTree, useLessonPlayer (a small status machine).
 services/api.ts The single place any network call happens.
@@ -151,19 +174,21 @@ users
   └── user_achievements  (user_id → users.id, achievement_id → achievements.id)
 
 achievements             (catalog, no parent)
+app_meta                 (key/value facts about the database itself)
 ```
 
 | Table | Columns |
 | --- | --- |
-| `users` | `id`, `name`, `email` (unique), `xp_total`, `xp_today`, `xp_today_date`, `week_xp`, `week_start`, `league`, `hearts`, `streak`, `last_active_date`, `hearts_updated_at`, `gems` |
+| `users` | `id`, `name`, `email` (unique), `xp_total`, `xp_today`, `xp_today_date`, `week_xp`, `week_start`, `league`, `hearts`, `streak`, `last_active_date`, `hearts_updated_at`, `gems`, `avatar_color` |
 | `courses` | `id`, `title`, `language` |
 | `units` | `id`, `title`, `order`, `course_id` |
-| `skills` | `id`, `title`, `order`, `unit_id` |
+| `skills` | `id`, `title`, `order`, `icon`, `unit_id` |
 | `lessons` | `id`, `title`, `order`, `skill_id` |
 | `exercises` | `id`, `lesson_id`, `type`, `question`, `options` (JSON), `correct_answer` (JSON), `order` |
 | `user_progress` | `id`, `user_id`, `skill_id`, `status`, `crowns` |
 | `achievements` | `id`, `code` (unique), `title`, `description`, `icon` |
 | `user_achievements` | `id`, `user_id`, `achievement_id`, `earned_at` |
+| `app_meta` | `key` (PK), `value` |
 
 **Exercise types.** `exercises.type` is one of five, and the shape of `options` /
 `correct_answer` depends on it:
@@ -200,6 +225,16 @@ achievements             (catalog, no parent)
 - **Daily XP is stored beside the day it counts for.** Rather than a scheduled job clearing
   `xp_today` at midnight, a read compares `xp_today_date` against today and reports 0 if it is
   stale. Same lazy-rollover idea as heart regeneration, and for the same reason: no scheduler.
+- **`skills.icon` and `users.avatar_color` store token *names*, not URLs or hex codes.** `"food"`,
+  `"blue"` — the frontend maps them to an inline SVG and a CSS variable respectively. Storing the
+  rendered value instead would freeze it: a hex avatar colour picked in light mode would stay that
+  hex in dark mode, and an icon URL would need an asset pipeline and could 404. Both have a
+  fallback for unknown values, so bad data degrades to a default rather than an empty node. The
+  colour is additionally allow-listed server-side, since the value ends up in a `style` attribute.
+- **`app_meta` versions the database, not the learner.** It holds one row — `content_version` —
+  written at seed time and compared at boot. It is a table rather than a file so the version
+  travels with the data it describes if the database is ever moved or restored. See
+  [Deployment](#deployment) for why this exists at all.
 
 ---
 
@@ -212,6 +247,7 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 | --- | --- | --- |
 | `GET` | `/health` | Liveness check. |
 | `GET` | `/users/{user_id}` | Learner state: XP, hearts, streak, gems, daily-goal progress, and the heart-regen countdown. Applies pending heart regeneration as a side effect. |
+| `PATCH` | `/users/{user_id}` | Edit display name and/or avatar colour. Partial body — send only what changed. Returns the full refreshed user. `400` for a blank name, an unknown colour, or an empty body. |
 | `POST` | `/users/{user_id}/hearts/refill` | Spend gems to restore hearts to full. `400` if already full or too few gems. |
 | `GET` | `/users/{user_id}/achievements` | Full badge catalog with this learner's earned state merged in — locked badges included, so the profile can show them as goals. |
 | `GET` | `/practice?user_id=` | A shuffled set of exercises drawn from every skill the learner has unlocked, plus the round's duration. |
@@ -258,8 +294,10 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 
 `python seed/seed_data.py` creates:
 
-- One Korean course: **4 units, 8 skills, 16 lessons, 80 exercises**. Every lesson contains one
-  of each of the five exercise types, so the player hits all five code paths every time.
+- One Korean course: **4 units, 16 skills, 32 lessons, 160 exercises** — 4 skills per unit, 2
+  lessons per skill, 5 exercises per lesson. Every lesson contains one of each of the five
+  exercise types, so the player hits all five code paths every time. Each skill also carries an
+  `icon` key, giving the path 16 distinct illustrations rather than 16 identical circles.
 - **Demo User** (`id=1`) — the learner the app runs as. Seeded mid-course rather than empty:
   140 XP, a 3-day streak, 4 of 5 hearts, 500 gems, 30/50 XP toward today's goal, with *Greetings*
   completed, *Numbers* half done, and the rest locked. That renders a completed, an available and
@@ -297,13 +335,30 @@ ORM constructor calls.
   row: it's a UI preference, not learner progress, so it shouldn't round-trip through the API. The
   step list is filtered to targets actually on screen when it opens, so the tour shortens itself
   on narrow viewports where the right rail is hidden.
+- **Navigation mirrors Duolingo's seven items, but only the real ones are real.** LEARN, PRACTICE,
+  LEADERBOARDS, SHOP and PROFILE all reach working, server-backed pages. QUESTS and MORE
+  (settings) are placeholders. The mobile tab bar drops to five: seven tabs do not fit a 375px
+  phone, so QUESTS and MORE stay desktop-only rather than being squeezed in illegibly.
+- **The shop is half real, deliberately.** Refilling hearts spends real gems through the existing
+  `POST /users/{id}/hearts/refill`, and reuses the same `HeartsRefill` component the learning path
+  uses — it already owns the affordability check and the regen countdown. Super, streak freezes
+  and gem bundles are marked "SOON", since the brief allows mocked in-app purchases.
+- **Profile editing covers name and avatar colour only.** `PATCH /users/{id}` takes a partial body
+  and returns the full refreshed user, so the client replaces its cached state rather than merging.
+  Email is deliberately read-only: it is the unique key on `users` and there is no auth to verify a
+  change of address. XP, hearts and streak are not client-editable at all — they are earned
+  server-side, and a profile form that could set them would undermine every gamification rule.
+- **Quests are inert copy, not fake progress bars.** Every other number in the app is real and
+  server-owned; a bar animating to an invented percentage would be the one place the UI lies about
+  state. A real implementation needs a quests table, per-quest progress rows and a daily reset —
+  the same lazy-rollover the daily goal already uses.
 - **Settings is a placeholder.** `/settings` renders the shape a real settings page would take,
   with every row marked "SOON" and nothing wired to the backend. The brief states a "Coming Soon"
-  placeholder is sufficient here.
+  placeholder is sufficient here. The theme toggle on it is the one part that works.
 - **Progress is tracked per skill, not per lesson.** `user_progress.crowns` counts how many
   lessons in a skill are done, not which ones. Replaying a lesson grants another crown until the
   skill is complete. Per-lesson tracking would need its own table.
 - **SQLite with no migration tool.** Schema changes are applied by re-running the seed script,
   which drops and recreates every table. Fine for disposable demo data; a real deployment would
-  need Alembic. In production the `--if-empty` flag prevents that drop from ever running against
-  a database that already has content.
+  need Alembic. In production the `--if-stale` flag gates that drop behind a version bump, so it
+  runs once per content change rather than on every restart — see [Deployment](#deployment).

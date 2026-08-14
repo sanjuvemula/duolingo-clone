@@ -61,7 +61,7 @@ export default function SettingsPage() {
               </div>
               <span
                 className="rounded-full px-3 py-1 font-display text-xs font-bold"
-                style={{ background: "var(--stone-light)", color: "var(--stone)" }}
+                style={{ background: "var(--stone-light)", color: "var(--badge-ink)" }}
               >
                 SOON
               </span>

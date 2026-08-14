@@ -34,8 +34,33 @@ class User(Base):
     # field cannot mean both without corrupting the other.
     hearts_updated_at = Column(DateTime, nullable=True)
     gems = Column(Integer, default=0)
+    # Avatar colour as a token *name* ("blue", "green", …), not a hex value.
+    # Storing the name keeps the avatar theme-aware: the frontend resolves it
+    # to a CSS variable, so the same row renders correctly in light and dark
+    # mode. A stored hex would be frozen at whatever the theme was when the
+    # learner picked it. Unknown names fall back to the default.
+    avatar_color = Column(String, default="blue")
 
     progress = relationship("UserProgress", back_populates="user")
+
+
+class AppMeta(Base):
+    """Single-row-per-key store for facts about the database itself, as
+    opposed to facts about a learner or the course.
+
+    Currently holds exactly one key, "content_version". There is no migration
+    tool in this project (see the README), so the deployment needs some way to
+    tell "this disk holds an older version of the seed content and schema"
+    from "this disk is current". A version string written at seed time and
+    compared at boot is that signal — see seed_data.seed_if_stale.
+
+    A table rather than a file on disk because the database is the thing being
+    versioned: if the DB is ever restored, moved, or swapped, the version
+    travels with the data it describes instead of going stale beside it.
+    """
+    __tablename__ = "app_meta"
+    key = Column(String, primary_key=True)
+    value = Column(String, nullable=False)
 
 
 class Course(Base):
@@ -63,6 +88,11 @@ class Skill(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     order = Column(Integer, default=0)
+    # Which illustration the path node shows. A short key ("greeting", "food",
+    # …) rather than a URL or emoji: the frontend maps it to an inline SVG, so
+    # the icon inherits the theme's colours and the app ships no image assets.
+    # Unknown keys fall back to a default, so a typo can't break the path.
+    icon = Column(String, default="star")
     unit_id = Column(Integer, ForeignKey("units.id"))
 
     unit = relationship("Unit", back_populates="skills")

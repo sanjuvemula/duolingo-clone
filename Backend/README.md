@@ -27,6 +27,18 @@ python seed/seed_data.py
 Safe to re-run at any time. It drops and recreates every table, so it is also how a model change
 gets applied — there is no migration tool in this project.
 
+There is a second, gated form used by deployments:
+
+```bash
+python seed/seed_data.py --if-stale
+```
+
+This reseeds only when the database is empty or its stored `content_version` differs from
+`seed_data.CONTENT_VERSION`, so it is safe to run on every boot. **Bump `CONTENT_VERSION` whenever
+you change the schema or the seed content**, otherwise a deployed database will keep serving the
+old shape and a new column will fail with `no such column`. Full rationale in the
+[root README](../README.md#deployment).
+
 ## Layout
 
 | Directory | Responsibility |

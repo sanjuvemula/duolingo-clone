@@ -6,9 +6,10 @@ connection.py points at the relative path "./duolingo.db"):
 
     python seed/seed_data.py
 
-Content shape: one Korean course, 4 units, 8 skills, 2 lessons per skill, and
-5 exercises per lesson — one of each exercise type, so every lesson exercises
-all five code paths in the player.
+Content shape: one Korean course, 4 units, 4 skills per unit, 2 lessons per
+skill, and 5 exercises per lesson — one of each exercise type, so every lesson
+exercises all five code paths in the player. That totals 16 skills, 32 lessons
+and 160 exercises.
 
 Course content is declared as plain data in COURSE below and expanded into ORM
 rows by build_course(), rather than written out as 80 hand-rolled Exercise(...)
@@ -32,6 +33,7 @@ from app.database.base import Base
 from app.database.connection import engine, SessionLocal
 from app.services import user_service
 from app.models.models import (
+    AppMeta,
     User,
     Course,
     Unit,
@@ -40,6 +42,22 @@ from app.models.models import (
     Exercise,
     UserProgress,
 )
+
+
+# Bump this whenever the seed content or the schema changes in a way an
+# already-deployed database can't serve — a new column, a new skill, reordered
+# units. It is written into app_meta at seed time and compared at boot by
+# seed_if_stale(), which is how a deployment knows to rebuild itself.
+#
+# This exists because there is no migration tool here (see the README): SQLite
+# cannot add a column to an existing table via create_all, so shipping a schema
+# change to a live disk would otherwise leave the API raising "no such column"
+# on every request. Rebuilding is acceptable *only* because every row in this
+# database is demo data that the seed script itself authored — there is no
+# learner-authored content to lose. A real app would run Alembic here instead.
+CONTENT_VERSION = "2"
+
+CONTENT_VERSION_KEY = "content_version"
 
 
 # ---------------------------------------------------------------------------
@@ -87,6 +105,7 @@ COURSE = {
             "skills": [
                 {
                     "title": "Greetings",
+                    "icon": "greeting",
                     "lessons": [
                         ("Greetings 1", [
                             mc("What does '안녕하세요' mean?", ["Hello", "Goodbye", "Thank you", "Sorry"], "Hello"),
@@ -106,6 +125,7 @@ COURSE = {
                 },
                 {
                     "title": "Numbers",
+                    "icon": "number",
                     "lessons": [
                         ("Numbers 1", [
                             mc("What does '셋' mean?", ["Three", "Two", "Four", "Ten"], "Three"),
@@ -123,6 +143,46 @@ COURSE = {
                         ]),
                     ],
                 },
+                {
+                    "title": "Introductions",
+                    "icon": "chat",
+                    "lessons": [
+                        ("Introductions 1", [
+                            mc("What does '이름' mean?", ["Name", "Country", "Teacher", "Student"], "Name"),
+                            word_bank("Build: 'I am a student'", ["저는", "학생", "입니다", "선생님"], "저는 학생 입니다"),
+                            match("Match the word to its meaning", [["이름", "Name"], ["학생", "Student"], ["선생님", "Teacher"]]),
+                            fill_blank("___이 뭐예요?  (What is your name?)", ["이름", "나라", "학교", "가족"], "이름"),
+                            type_answer("Type 'Student' in Korean", "학생"),
+                        ]),
+                        ("Introductions 2", [
+                            mc("What does '나라' mean?", ["Country", "City", "Name", "House"], "Country"),
+                            word_bank("Build: 'I am from Korea'", ["저는", "한국에서", "왔어요", "갔어요"], "저는 한국에서 왔어요"),
+                            match("Match the word to its meaning", [["한국", "Korea"], ["나라", "Country"], ["친구", "Friend"]]),
+                            fill_blank("저는 ___에서 왔어요.  (I am from Korea.)", ["한국", "학교", "이름", "친구"], "한국"),
+                            type_answer("Type 'Friend' in Korean", "친구"),
+                        ]),
+                    ],
+                },
+                {
+                    "title": "Basic Phrases",
+                    "icon": "star",
+                    "lessons": [
+                        ("Basic Phrases 1", [
+                            mc("What does '얼마예요?' mean?", ["How much is it?", "Where is it?", "What is it?", "Who is it?"], "How much is it?"),
+                            word_bank("Build: 'Please give me water'", ["물", "주세요", "밥", "좋아요"], "물 주세요"),
+                            match("Match the phrase to its meaning", [["네", "Yes"], ["아니요", "No"], ["몰라요", "I don't know"]]),
+                            fill_blank("이거 ___?  (How much is this?)", ["얼마예요", "뭐예요", "어디예요", "누구예요"], "얼마예요"),
+                            type_answer("Type 'No' in Korean", "아니요"),
+                        ]),
+                        ("Basic Phrases 2", [
+                            mc("What does '좋아요' mean?", ["It's good", "It's bad", "It's big", "It's small"], "It's good"),
+                            word_bank("Build: 'I don't know'", ["저는", "몰라요", "알아요", "좋아요"], "저는 몰라요"),
+                            match("Match the phrase to its meaning", [["좋아요", "It's good"], ["알아요", "I know"], ["괜찮아요", "It's okay"]]),
+                            fill_blank("정말 ___!  (It's really good!)", ["좋아요", "몰라요", "아니요", "주세요"], "좋아요"),
+                            type_answer("Type 'It's okay' in Korean", "괜찮아요"),
+                        ]),
+                    ],
+                },
             ],
         },
         {
@@ -130,6 +190,7 @@ COURSE = {
             "skills": [
                 {
                     "title": "Food Words",
+                    "icon": "food",
                     "lessons": [
                         ("Food 1", [
                             mc("What does '사과' mean?", ["Apple", "Bread", "Water", "Egg"], "Apple"),
@@ -149,6 +210,7 @@ COURSE = {
                 },
                 {
                     "title": "Drinks",
+                    "icon": "drink",
                     "lessons": [
                         ("Drinks 1", [
                             mc("What does '커피' mean?", ["Coffee", "Tea", "Juice", "Milk"], "Coffee"),
@@ -166,6 +228,46 @@ COURSE = {
                         ]),
                     ],
                 },
+                {
+                    "title": "Ordering",
+                    "icon": "cart",
+                    "lessons": [
+                        ("Ordering 1", [
+                            mc("What does '메뉴' mean?", ["Menu", "Bill", "Table", "Spoon"], "Menu"),
+                            word_bank("Build: 'Please give me the menu'", ["메뉴", "주세요", "계산서", "물"], "메뉴 주세요"),
+                            match("Match the word to its meaning", [["메뉴", "Menu"], ["계산서", "Bill"], ["식당", "Restaurant"]]),
+                            fill_blank("___ 주세요.  (The bill, please.)", ["계산서", "메뉴", "커피", "빵"], "계산서"),
+                            type_answer("Type 'Menu' in Korean", "메뉴"),
+                        ]),
+                        ("Ordering 2", [
+                            mc("What does '맛있어요' mean?", ["It's delicious", "It's spicy", "It's cold", "It's cheap"], "It's delicious"),
+                            word_bank("Build: 'It is really delicious'", ["정말", "맛있어요", "매워요", "비싸요"], "정말 맛있어요"),
+                            match("Match the word to its meaning", [["맛있어요", "Delicious"], ["매워요", "Spicy"], ["짜요", "Salty"]]),
+                            fill_blank("김치가 ___.  (Kimchi is spicy.)", ["매워요", "맛있어요", "짜요", "좋아요"], "매워요"),
+                            type_answer("Type 'It's delicious' in Korean", "맛있어요"),
+                        ]),
+                    ],
+                },
+                {
+                    "title": "Fruits & Veg",
+                    "icon": "leaf",
+                    "lessons": [
+                        ("Fruits 1", [
+                            mc("What does '딸기' mean?", ["Strawberry", "Grape", "Watermelon", "Carrot"], "Strawberry"),
+                            word_bank("Build: 'I like strawberries'", ["저는", "딸기를", "좋아해요", "싫어해요"], "저는 딸기를 좋아해요"),
+                            match("Match the fruit to its meaning", [["딸기", "Strawberry"], ["포도", "Grape"], ["수박", "Watermelon"]]),
+                            fill_blank("___를 먹어요.  (I eat grapes.)", ["포도", "당근", "양파", "수박"], "포도"),
+                            type_answer("Type 'Watermelon' in Korean", "수박"),
+                        ]),
+                        ("Vegetables 1", [
+                            mc("What does '당근' mean?", ["Carrot", "Onion", "Potato", "Cabbage"], "Carrot"),
+                            word_bank("Build: 'Carrots and onions'", ["당근", "그리고", "양파", "감자"], "당근 그리고 양파"),
+                            match("Match the vegetable to its meaning", [["당근", "Carrot"], ["양파", "Onion"], ["감자", "Potato"]]),
+                            fill_blank("___를 사요.  (I buy potatoes.)", ["감자", "딸기", "포도", "수박"], "감자"),
+                            type_answer("Type 'Onion' in Korean", "양파"),
+                        ]),
+                    ],
+                },
             ],
         },
         {
@@ -173,6 +275,7 @@ COURSE = {
             "skills": [
                 {
                     "title": "Places",
+                    "icon": "map",
                     "lessons": [
                         ("Places 1", [
                             mc("What does '학교' mean?", ["School", "Hospital", "Bank", "Market"], "School"),
@@ -192,6 +295,7 @@ COURSE = {
                 },
                 {
                     "title": "Directions",
+                    "icon": "compass",
                     "lessons": [
                         ("Directions 1", [
                             mc("What does '왼쪽' mean?", ["Left", "Right", "Front", "Behind"], "Left"),
@@ -209,6 +313,46 @@ COURSE = {
                         ]),
                     ],
                 },
+                {
+                    "title": "Transport",
+                    "icon": "bus",
+                    "lessons": [
+                        ("Transport 1", [
+                            mc("What does '버스' mean?", ["Bus", "Subway", "Taxi", "Train"], "Bus"),
+                            word_bank("Build: 'I ride the bus'", ["저는", "버스를", "타요", "걸어요"], "저는 버스를 타요"),
+                            match("Match the transport to its meaning", [["버스", "Bus"], ["지하철", "Subway"], ["택시", "Taxi"]]),
+                            fill_blank("___을 타고 가요.  (I go by subway.)", ["지하철", "자전거", "기차", "택시"], "지하철"),
+                            type_answer("Type 'Taxi' in Korean", "택시"),
+                        ]),
+                        ("Transport 2", [
+                            mc("What does '자전거' mean?", ["Bicycle", "Train", "Car", "Plane"], "Bicycle"),
+                            word_bank("Build: 'The train is fast'", ["기차가", "빨라요", "느려요", "버스가"], "기차가 빨라요"),
+                            match("Match the transport to its meaning", [["기차", "Train"], ["자전거", "Bicycle"], ["비행기", "Plane"]]),
+                            fill_blank("___는 빨라요.  (The plane is fast.)", ["비행기", "자전거", "버스", "택시"], "비행기"),
+                            type_answer("Type 'Train' in Korean", "기차"),
+                        ]),
+                    ],
+                },
+                {
+                    "title": "Shopping",
+                    "icon": "bag",
+                    "lessons": [
+                        ("Shopping 1", [
+                            mc("What does '가게' mean?", ["Shop", "School", "Bank", "Station"], "Shop"),
+                            word_bank("Build: 'I go to the shop'", ["저는", "가게에", "가요", "와요"], "저는 가게에 가요"),
+                            match("Match the word to its meaning", [["가게", "Shop"], ["옷", "Clothes"], ["신발", "Shoes"]]),
+                            fill_blank("___을 사요.  (I buy clothes.)", ["옷", "밥", "물", "책"], "옷"),
+                            type_answer("Type 'Shoes' in Korean", "신발"),
+                        ]),
+                        ("Shopping 2", [
+                            mc("What does '비싸요' mean?", ["It's expensive", "It's cheap", "It's big", "It's new"], "It's expensive"),
+                            word_bank("Build: 'It is really cheap'", ["정말", "싸요", "비싸요", "좋아요"], "정말 싸요"),
+                            match("Match the word to its meaning", [["비싸요", "Expensive"], ["싸요", "Cheap"], ["사요", "Buy"]]),
+                            fill_blank("이 신발은 ___.  (These shoes are expensive.)", ["비싸요", "싸요", "좋아요", "매워요"], "비싸요"),
+                            type_answer("Type 'It's cheap' in Korean", "싸요"),
+                        ]),
+                    ],
+                },
             ],
         },
         {
@@ -216,6 +360,7 @@ COURSE = {
             "skills": [
                 {
                     "title": "Family Words",
+                    "icon": "family",
                     "lessons": [
                         ("Family 1", [
                             mc("What does '어머니' mean?", ["Mother", "Father", "Sister", "Brother"], "Mother"),
@@ -235,6 +380,7 @@ COURSE = {
                 },
                 {
                     "title": "Daily Life",
+                    "icon": "sun",
                     "lessons": [
                         ("Daily Life 1", [
                             mc("What does '아침' mean?", ["Morning", "Evening", "Today", "Tomorrow"], "Morning"),
@@ -249,6 +395,46 @@ COURSE = {
                             match("Match the verb to its meaning", [["일해요", "Work"], ["공부해요", "Study"], ["자요", "Sleep"]]),
                             fill_blank("저는 매일 ___.  (I work every day.)", ["일해요", "자요", "먹어요", "가요"], "일해요"),
                             type_answer("Type 'Yesterday' in Korean", "어제"),
+                        ]),
+                    ],
+                },
+                {
+                    "title": "Time",
+                    "icon": "clock",
+                    "lessons": [
+                        ("Time 1", [
+                            mc("What does '시간' mean?", ["Time", "Minute", "Weekend", "Week"], "Time"),
+                            word_bank("Build: 'I have no time'", ["저는", "시간이", "없어요", "있어요"], "저는 시간이 없어요"),
+                            match("Match the word to its meaning", [["시간", "Time"], ["분", "Minute"], ["주말", "Weekend"]]),
+                            fill_blank("십 ___ 기다리세요.  (Please wait ten minutes.)", ["분", "시간", "주말", "오전"], "분"),
+                            type_answer("Type 'Weekend' in Korean", "주말"),
+                        ]),
+                        ("Time 2", [
+                            mc("What does '오후' mean?", ["Afternoon", "Morning", "Night", "Week"], "Afternoon"),
+                            word_bank("Build: 'See you in the afternoon'", ["오후에", "만나요", "오전에", "가요"], "오후에 만나요"),
+                            match("Match the word to its meaning", [["오전", "Morning (AM)"], ["오후", "Afternoon (PM)"], ["밤", "Night"]]),
+                            fill_blank("___에 학교에 가요.  (I go to school in the morning.)", ["오전", "오후", "밤", "주말"], "오전"),
+                            type_answer("Type 'Night' in Korean", "밤"),
+                        ]),
+                    ],
+                },
+                {
+                    "title": "Describing People",
+                    "icon": "people",
+                    "lessons": [
+                        ("Describing 1", [
+                            mc("What does '예뻐요' mean?", ["Pretty", "Tall", "Kind", "Smart"], "Pretty"),
+                            word_bank("Build: 'My friend is kind'", ["제", "친구는", "친절해요", "똑똑해요"], "제 친구는 친절해요"),
+                            match("Match the word to its meaning", [["예뻐요", "Pretty"], ["친절해요", "Kind"], ["똑똑해요", "Smart"]]),
+                            fill_blank("어머니는 정말 ___.  (Mother is really kind.)", ["친절해요", "작아요", "비싸요", "매워요"], "친절해요"),
+                            type_answer("Type 'Smart' in Korean", "똑똑해요"),
+                        ]),
+                        ("Describing 2", [
+                            mc("What does '키가 커요' mean?", ["Tall", "Short", "Small", "Big"], "Tall"),
+                            word_bank("Build: 'My older brother is tall'", ["형은", "키가", "커요", "작아요"], "형은 키가 커요"),
+                            match("Match the word to its meaning", [["커요", "Big"], ["작아요", "Small"], ["많아요", "Many"]]),
+                            fill_blank("동생은 키가 ___.  (My younger sibling is short.)", ["작아요", "커요", "많아요", "좋아요"], "작아요"),
+                            type_answer("Type 'Big' in Korean", "커요"),
                         ]),
                     ],
                 },
@@ -312,7 +498,12 @@ def build_course(db) -> tuple[Course, list[Skill], int, int]:
         db.flush()
 
         for skill_order, skill_data in enumerate(unit_data["skills"], start=1):
-            skill = Skill(title=skill_data["title"], order=skill_order, unit_id=unit.id)
+            skill = Skill(
+                title=skill_data["title"],
+                icon=skill_data.get("icon", "star"),
+                order=skill_order,
+                unit_id=unit.id,
+            )
             db.add(skill)
             db.flush()
             ordered_skills.append(skill)
@@ -365,6 +556,7 @@ def seed() -> None:
             streak=3,
             last_active_date=datetime.utcnow(),
             gems=500,
+            avatar_color="blue",
         )
         db.add(user)
         db.flush()
@@ -407,6 +599,12 @@ def seed() -> None:
             for index, skill in enumerate(ordered_skills)
         ])
 
+        # Stamp the version last, inside the same transaction as the content it
+        # describes. If seeding fails halfway the stamp rolls back with it, so
+        # the next boot sees a stale version and retries rather than trusting a
+        # half-built database.
+        db.add(AppMeta(key=CONTENT_VERSION_KEY, value=CONTENT_VERSION))
+
         db.commit()
 
         print("Seed complete:")
@@ -425,35 +623,75 @@ def seed() -> None:
         db.close()
 
 
-def seed_if_empty() -> bool:
-    """Seed only when the database has no course yet. Returns whether it ran.
+def stored_content_version() -> tuple[bool, str | None]:
+    """Inspect the database's seeded state.
 
-    This is what a deployment's start command uses. A fresh persistent disk has
-    no database at all, so something must seed it on first boot — but calling
-    seed() unconditionally would drop every table on each restart and delete
-    the learner's progress, since containers restart for reasons other than a
-    new release. Checking for content first makes the call safe to repeat.
+    Returns (has_content, version). The two are separate because "empty" and
+    "seeded by a build that predates app_meta" both lack a version but are not
+    the same situation — the second is an already-deployed disk, and reporting
+    it as empty would make the boot log claim it found nothing when it is in
+    fact about to discard real content. Both still count as stale.
     """
     Base.metadata.create_all(bind=engine)  # tables must exist before querying
 
     db = SessionLocal()
     try:
-        already_seeded = db.query(Course).first() is not None
+        has_content = db.query(Course).first() is not None
+        if not has_content:
+            return False, None
+        row = db.query(AppMeta).filter(AppMeta.key == CONTENT_VERSION_KEY).first()
+        return True, (row.value if row else None)
     finally:
         db.close()
 
-    if already_seeded:
-        print("Database already has content — skipping seed.")
+
+def seed_if_stale() -> bool:
+    """Seed when the database is empty or was built from older content.
+    Returns whether it ran.
+
+    This is what a deployment's start command uses, and it has to serve two
+    cases that pull in opposite directions:
+
+      * A container restart must NOT reseed. Restarts happen for reasons that
+        have nothing to do with a release, and dropping every table on each one
+        would wipe whatever the learner had done since the last boot.
+      * A release that changes the schema or the seed content MUST reseed.
+        SQLite can't add a column to an existing table via create_all, so a new
+        column against an old disk means every query raises "no such column"
+        until the database is rebuilt.
+
+    Comparing the stamped version against CONTENT_VERSION separates the two:
+    restarts see a matching version and do nothing, while the first boot after
+    a version bump rebuilds once and stamps the new value.
+
+    The cost is that a rebuild resets the demo learner. That is acceptable here
+    only because every row is demo data this script authored — see the note on
+    CONTENT_VERSION.
+    """
+    has_content, stored = stored_content_version()
+
+    if stored == CONTENT_VERSION:
+        print(f"Database already at content version {CONTENT_VERSION} — skipping seed.")
         return False
+
+    if not has_content:
+        print(f"Empty database — seeding content version {CONTENT_VERSION}.")
+    elif stored is None:
+        print(
+            "Database has content but no version stamp (seeded before app_meta "
+            f"existed) — rebuilding at content version {CONTENT_VERSION}."
+        )
+    else:
+        print(f"Content version {stored} is stale (code expects {CONTENT_VERSION}) — reseeding.")
 
     seed()
     return True
 
 
 if __name__ == "__main__":
-    # --if-empty is for deployments (safe to run on every boot); the bare form
+    # --if-stale is for deployments (safe to run on every boot); the bare form
     # is for local development, where a full rebuild is usually what you want.
-    if "--if-empty" in sys.argv:
-        seed_if_empty()
+    if "--if-stale" in sys.argv:
+        seed_if_stale()
     else:
         seed()

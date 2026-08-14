@@ -17,7 +17,7 @@ field.
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # ---------------------------------------------------------------------------
@@ -33,6 +33,19 @@ class UserCreate(UserBase):
     pass
 
 
+class UserUpdateRequest(BaseModel):
+    """Body for PATCH /users/{id} — the editable slice of a profile.
+
+    Both fields are optional so the client can send only what changed; a body
+    with neither is rejected rather than silently doing nothing. `email` is
+    deliberately absent: it is the table's unique key and there is no auth to
+    verify a change of address, so it stays read-only (see the README's
+    Assumptions).
+    """
+    name: Optional[str] = Field(default=None, min_length=1, max_length=40)
+    avatar_color: Optional[str] = None
+
+
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
@@ -42,6 +55,9 @@ class UserResponse(UserBase):
     streak: int
     last_active_date: Optional[datetime] = None
     gems: int
+    # Token name ("blue", "green", …) resolved to a CSS variable by the
+    # frontend, so the avatar follows the active theme.
+    avatar_color: str = "blue"
 
     # Heart economy, sent so the frontend never has to hardcode the rules.
     # seconds_until_next_heart is None when hearts are already full.
@@ -173,6 +189,10 @@ class SkillResponse(BaseModel):
     title: str
     order: int
     unit_id: int
+    # Illustration key ("greeting", "food", …), not a URL. The frontend maps it
+    # to an inline SVG so path nodes stay theme-aware and the app ships no
+    # image assets; unknown keys fall back to a default icon.
+    icon: str = "star"
 
 
 class SkillWithProgress(SkillResponse):

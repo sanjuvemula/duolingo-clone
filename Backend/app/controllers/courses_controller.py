@@ -55,6 +55,7 @@ def get_skill_tree(db: Session, course_id: int, user: User) -> CourseWithUnits:
                     title=skill.title,
                     order=skill.order,
                     unit_id=skill.unit_id,
+                    icon=skill.icon,
                     status=progress.status if progress else "locked",
                     crowns=progress.crowns if progress else 0,
                     lesson_count=len(skill.lessons),

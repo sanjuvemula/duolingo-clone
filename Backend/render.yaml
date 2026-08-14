@@ -20,9 +20,13 @@ services:
     rootDir: Backend
     plan: free
     buildCommand: pip install -r requirements.txt
-    # --if-empty makes this safe to run on every boot: it seeds a fresh disk on
-    # first deploy and does nothing thereafter, so restarts never wipe progress.
-    startCommand: python seed/seed_data.py --if-empty && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # --if-stale makes this safe to run on every boot: it seeds a fresh disk on
+    # first deploy, does nothing on ordinary restarts, and rebuilds exactly once
+    # after a release that bumps CONTENT_VERSION in seed_data.py. That last case
+    # is what lets a schema change (a new column) ship to this mounted disk at
+    # all — without it the API would raise "no such column" on every request,
+    # since SQLite can't add columns to an existing table via create_all.
+    startCommand: python seed/seed_data.py --if-stale && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     disk:
       name: duolingo-data

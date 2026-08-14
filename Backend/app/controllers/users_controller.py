@@ -20,7 +20,12 @@ from sqlalchemy.orm import Session
 
 from app.middleware.current_user import get_user_or_404
 from app.models.models import User
-from app.schemas.schemas import AchievementResponse, HeartsRefillResponse, UserResponse
+from app.schemas.schemas import (
+    AchievementResponse,
+    HeartsRefillResponse,
+    UserResponse,
+    UserUpdateRequest,
+)
 from app.services import achievement_service, user_service
 
 
@@ -43,6 +48,7 @@ def _to_response(user: User) -> UserResponse:
         heart_refill_gem_cost=user_service.HEART_REFILL_GEM_COST,
         xp_today=user_service.xp_earned_today(user),
         daily_xp_goal=user_service.DAILY_XP_GOAL,
+        avatar_color=user.avatar_color,
     )
 
 
@@ -54,6 +60,30 @@ def get_user(db: Session, user_id: int) -> UserResponse:
     user_service.apply_heart_regen(user)
     if user.hearts != before or db.is_modified(user):
         db.commit()
+
+    return _to_response(user)
+
+
+def update_user(db: Session, user_id: int, payload: UserUpdateRequest) -> UserResponse:
+    """Apply a profile edit and return the learner's full refreshed state.
+
+    Returns the same UserResponse shape as GET so the client can replace its
+    cached user wholesale instead of merging a partial patch into it — the
+    response carries derived fields (heart countdown, daily goal) that a patch
+    body could not supply anyway.
+    """
+    user = get_user_or_404(db, user_id)
+
+    try:
+        user_service.update_profile(
+            user,
+            name=payload.name,
+            avatar_color=payload.avatar_color,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    db.commit()
 
     return _to_response(user)
 

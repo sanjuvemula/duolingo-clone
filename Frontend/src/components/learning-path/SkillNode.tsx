@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SkillWithProgress } from "@/types/api";
 import { ProgressRing } from "./ProgressRing";
-import { CrownIcon, LockIcon, PlayIcon } from "./icons";
+import { CrownIcon, LockIcon } from "./icons";
+import { SkillIcon } from "./SkillIcon";
 
 interface SkillNodeProps {
   skill: SkillWithProgress;
@@ -76,7 +77,10 @@ export function SkillNode({ skill, offsetX }: SkillNodeProps) {
         </span>
       )}
 
-      <div className={shaking ? "animate-[shake_0.4s]" : ""}>
+      {/* `relative` anchors the crown badge to the ring specifically. Without
+          it the badge would position against the outer wrapper, which also
+          contains the title, and land below the text. */}
+      <div className={`relative ${shaking ? "animate-[shake_0.4s]" : ""}`}>
         <ProgressRing
           size={88}
           strokeWidth={7}
@@ -94,15 +98,29 @@ export function SkillNode({ skill, offsetX }: SkillNodeProps) {
             }
             className={`${nodeClass} outline-none focus-visible:ring-4 focus-visible:ring-blue/40`}
           >
-            {isLocked ? (
-              <LockIcon size={28} />
-            ) : isCompleted ? (
-              <CrownIcon size={30} />
-            ) : (
-              <PlayIcon size={28} />
-            )}
+            {/* Every node shows its own illustration, including locked ones.
+                That's what makes a Duolingo path scannable — you find "the
+                food one" by its picture, not by reading sixteen labels. A
+                padlock in place of the icon would collapse most of the tree
+                into identical grey circles, so lock state is carried by the
+                muted node colour plus the badge below instead. */}
+            <SkillIcon name={skill.icon} size={32} />
           </button>
         </ProgressRing>
+
+        {/* State badge pinned to the ring's lower edge: a gold crown when the
+            skill is finished, a padlock while it isn't reachable. Decorative
+            only — the button's aria-label already states both, so repeating
+            it here would just be noise for a screen reader. */}
+        {(isCompleted || isLocked) && (
+          <span
+            className="pointer-events-none absolute bottom-0 left-1/2 flex h-7 w-7 -translate-x-1/2 translate-y-1 items-center justify-center rounded-full border-2 border-paper-raised text-white shadow-sm"
+            style={{ background: isCompleted ? "var(--gold)" : "var(--stone)" }}
+            aria-hidden="true"
+          >
+            {isCompleted ? <CrownIcon size={16} /> : <LockIcon size={14} />}
+          </span>
+        )}
       </div>
 
       <span
