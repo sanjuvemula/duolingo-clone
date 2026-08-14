@@ -179,7 +179,7 @@ app_meta                 (key/value facts about the database itself)
 
 | Table | Columns |
 | --- | --- |
-| `users` | `id`, `name`, `email` (unique), `xp_total`, `xp_today`, `xp_today_date`, `week_xp`, `week_start`, `league`, `hearts`, `streak`, `last_active_date`, `hearts_updated_at`, `gems`, `avatar_color` |
+| `users` | `id`, `name`, `email` (unique), `xp_total`, `xp_today`, `xp_today_date`, `week_xp`, `week_start`, `league`, `hearts`, `streak`, `last_active_date`, `hearts_updated_at`, `gems`, `avatar_color`, `created_at`, `top_3_finishes` |
 | `courses` | `id`, `title`, `language` |
 | `units` | `id`, `title`, `order`, `course_id` |
 | `skills` | `id`, `title`, `order`, `icon`, `unit_id` |
@@ -246,7 +246,7 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/health` | Liveness check. |
-| `GET` | `/users/{user_id}` | Learner state: XP, hearts, streak, gems, daily-goal progress, and the heart-regen countdown. Applies pending heart regeneration as a side effect. |
+| `GET` | `/users/{user_id}` | Learner state: XP, hearts, streak, gems, daily-goal progress, the heart-regen countdown, and profile detail (join date, league, top-3 finishes). Applies pending heart regeneration as a side effect. |
 | `PATCH` | `/users/{user_id}` | Edit display name and/or avatar colour. Partial body — send only what changed. Returns the full refreshed user. `400` for a blank name, an unknown colour, or an empty body. |
 | `POST` | `/users/{user_id}/hearts/refill` | Spend gems to restore hearts to full. `400` if already full or too few gems. |
 | `GET` | `/users/{user_id}/achievements` | Full badge catalog with this learner's earned state merged in — locked badges included, so the profile can show them as goals. |
@@ -301,7 +301,9 @@ Every endpoint that acts on behalf of a learner takes a `user_id` query paramete
 - **Demo User** (`id=1`) — the learner the app runs as. Seeded mid-course rather than empty:
   140 XP, a 3-day streak, 4 of 5 hearts, 500 gems, 30/50 XP toward today's goal, with *Greetings*
   completed, *Numbers* half done, and the rest locked. That renders a completed, an available and
-  several locked nodes on first load, plus a partly-filled crown ring and daily goal.
+  several locked nodes on first load, plus a partly-filled crown ring and daily goal. The join date
+  is backdated ~3 months and 2 top-3 finishes are seeded, so the profile reads as a real history
+  rather than "joined today".
 - Seven rivals sharing the demo learner's Gold League, with weekly XP chosen so the learner lands
   4th of 8 — just outside the promotion zone, which puts both the promotion and relegation bands
   on screen at once.
@@ -319,7 +321,21 @@ ORM constructor calls.
   value — anyone can act as anyone by changing the number. The assignment explicitly permits a
   simplified login, so this is deliberate. It is isolated in
   `app/middleware/current_user.py` as a single seam to replace with real session/JWT auth.
-- **Gems are mocked.** They are seeded and can be spent on heart refills, but are never earned.
+- **Gems and top-3 finishes are mocked in the same way.** Both are real columns that the app reads,
+  but nothing increments them. Gems are seeded and only ever spent (on heart refills);
+  `top_3_finishes` would be incremented by the weekly promotion job at the league boundary, and
+  this project has no scheduler to run one. They are seeded to plausible values so the profile
+  isn't showing a permanent zero. Everything else on the profile — streak, XP, league, achievements
+  — is earned.
+- **The profile follows Duolingo's real layout.** Avatar, name, join date, a mocked
+  followers/following row, a Statistics block (day streak, total XP, current league, top-3
+  finishes) and then achievements. Followers/following render as `0` rather than invented numbers:
+  there is no social graph in this build, and a fake follower count would be the only figure on the
+  page that isn't backed by a real column.
+- **Nav icons don't use `currentColor`, unlike every other icon in the app.** Duolingo's rail keeps
+  each destination's colour whether or not it is the active tab, and that constant colour is most
+  of what stops the sidebar reading like an admin panel. They are still theme tokens rather than
+  literal hex, so they shift with the palette in dark mode instead of glowing at full saturation.
 - **Audio and pronunciation exercises are out of scope**, as the brief allows.
 - **One course only.** The schema supports many, but only Korean is seeded.
 - **Dark mode is token-only.** Every component reads CSS variables, so the dark theme redefines

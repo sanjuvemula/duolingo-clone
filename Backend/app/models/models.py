@@ -40,6 +40,16 @@ class User(Base):
     # mode. A stored hex would be frozen at whatever the theme was when the
     # learner picked it. Unknown names fall back to the default.
     avatar_color = Column(String, default="blue")
+    # When the learner joined, for the profile's "Joined <month year>" line.
+    # Distinct from last_active_date and hearts_updated_at: those track recent
+    # activity and move constantly, this is written once and never again.
+    created_at = Column(DateTime, default=datetime.utcnow)
+    # How many weeks the learner finished in their league's top three. Mocked
+    # in the same sense as gems: the column is real and read from, but nothing
+    # increments it, because promotion is applied at the week boundary and this
+    # project has no scheduler to run that job. Seeded with a plausible value
+    # so the profile stat isn't a permanent zero.
+    top_3_finishes = Column(Integer, default=0)
 
     progress = relationship("UserProgress", back_populates="user")
 

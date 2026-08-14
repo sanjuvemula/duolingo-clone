@@ -12,10 +12,9 @@ import {
   avatarColorVar,
 } from "@/components/gamification/ProfileEditModal";
 import {
-  FlameIcon,
-  GemIcon,
-  HeartIcon,
+  BoltIcon,
   CrownIcon,
+  FlameIcon,
 } from "@/components/learning-path/icons";
 
 export default function ProfilePage() {
@@ -114,52 +113,74 @@ export default function ProfilePage() {
               {user.name}
             </h2>
             <p className="text-sm text-ink-soft">{user.email}</p>
+            {user.created_at && (
+              <p className="mt-1 text-sm text-ink-soft">
+                Joined{" "}
+                {new Date(user.created_at).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "long",
+                })}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Stats grid */}
-        <div className="grid w-full max-w-md grid-cols-2 gap-4">
-          <StatCard
-            icon={<CrownIcon size={28} />}
-            label="Total XP"
-            value={user.xp_total.toLocaleString()}
-            color="var(--gold)"
-          />
-          <StatCard
-            icon={<FlameIcon size={28} />}
-            label="Day streak"
-            value={user.streak}
-            color="var(--red)"
-          />
-          <StatCard
-            icon={<HeartIcon size={28} />}
-            label="Hearts"
-            value={user.hearts}
-            color="var(--red)"
-          />
-          <StatCard
-            icon={<GemIcon size={28} />}
-            label="Gems"
-            value={user.gems}
-            color="var(--blue)"
-          />
+        {/* Followers / following. Mocked — there is no social graph in this
+            build, and the brief allows friends features to be placeholders.
+            Shown as zeroes rather than invented numbers: a fake follower count
+            would be the one figure on this page that isn't real. */}
+        <div className="flex items-center gap-8">
+          {[
+            { label: "Followers", value: 0 },
+            { label: "Following", value: 0 },
+          ].map((item) => (
+            <div key={item.label} className="text-center">
+              <p className="font-display text-lg font-extrabold text-ink">
+                {item.value}
+              </p>
+              <p className="text-xs text-ink-soft">{item.label}</p>
+            </div>
+          ))}
         </div>
+
+        {/* Statistics — the four Duolingo shows. Streak and XP are earned,
+            league comes from the weekly leaderboard the learner is actually
+            ranked in, and top-3 finishes is seeded (see the README). */}
+        <section className="w-full max-w-md">
+          <h3 className="mb-3 font-display text-sm font-extrabold uppercase tracking-wide text-ink-soft">
+            Statistics
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <StatCard
+              icon={<FlameIcon size={28} />}
+              label="Day streak"
+              value={user.streak}
+              color="var(--red)"
+            />
+            <StatCard
+              icon={<BoltIcon size={28} />}
+              label="Total XP"
+              value={user.xp_total.toLocaleString()}
+              color="var(--gold)"
+            />
+            <StatCard
+              icon={<span className="text-2xl leading-none">{user.league_icon}</span>}
+              label="Current league"
+              value={user.league_title.replace(" League", "")}
+              color="var(--gold)"
+            />
+            <StatCard
+              icon={<CrownIcon size={28} />}
+              label="Top 3 finishes"
+              value={user.top_3_finishes}
+              color="var(--gold)"
+            />
+          </div>
+        </section>
 
         {/* Achievements — required by the brief's "learner profile page with
             stats (streak, total XP, achievements)". */}
         <AchievementsGrid achievements={achievements} />
-
-        {/* Last active */}
-        {user.last_active_date && (
-          <p className="text-xs text-ink-soft">
-            Last active:{" "}
-            {new Date(user.last_active_date).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-        )}
       </div>
 
       {editing && (

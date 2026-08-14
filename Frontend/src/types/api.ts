@@ -34,6 +34,16 @@ export interface UserResponse {
   /** Token name ("blue", "green", …) resolved to a CSS variable, so the
    * avatar follows the active theme. Backend allow-lists the values. */
   avatar_color: string;
+  /** When the learner joined — drives the profile's "Joined <month year>". */
+  created_at: string | null;
+  /** Weeks finished in the league's top three. Seeded, never incremented —
+   * promotion runs at the week boundary and there's no scheduler. */
+  top_3_finishes: number;
+  /** Resolved from users.league via the backend's league catalog; the row
+   * itself stores only the code. */
+  league_code: string;
+  league_title: string;
+  league_icon: string;
 }
 
 /** Body for PATCH /users/{id} — matches schemas.UserUpdateRequest. Both fields

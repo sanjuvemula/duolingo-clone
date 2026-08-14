@@ -26,7 +26,7 @@ from app.schemas.schemas import (
     UserResponse,
     UserUpdateRequest,
 )
-from app.services import achievement_service, user_service
+from app.services import achievement_service, leaderboard_service, user_service
 
 
 def _to_response(user: User) -> UserResponse:
@@ -34,6 +34,8 @@ def _to_response(user: User) -> UserResponse:
     heart-economy rules, the live regen countdown and the daily goal — so it's
     built explicitly here rather than straight off the ORM object via
     model_validate."""
+    league = leaderboard_service.get_league(user.league)
+
     return UserResponse(
         id=user.id,
         name=user.name,
@@ -49,6 +51,13 @@ def _to_response(user: User) -> UserResponse:
         xp_today=user_service.xp_earned_today(user),
         daily_xp_goal=user_service.DAILY_XP_GOAL,
         avatar_color=user.avatar_color,
+        created_at=user.created_at,
+        top_3_finishes=user.top_3_finishes,
+        # get_league falls back to bronze for an unrecognised code, so a bad
+        # value in the column can't 500 the profile.
+        league_code=league.code,
+        league_title=league.title,
+        league_icon=league.icon,
     )
 
 

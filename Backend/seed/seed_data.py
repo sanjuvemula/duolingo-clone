@@ -22,7 +22,7 @@ needed anywhere in the stack for this to round-trip correctly.
 """
 
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Allow running as `python seed/seed_data.py` (script, not a package) by
@@ -55,7 +55,7 @@ from app.models.models import (
 # on every request. Rebuilding is acceptable *only* because every row in this
 # database is demo data that the seed script itself authored — there is no
 # learner-authored content to lose. A real app would run Alembic here instead.
-CONTENT_VERSION = "2"
+CONTENT_VERSION = "3"
 
 CONTENT_VERSION_KEY = "content_version"
 
@@ -557,6 +557,10 @@ def seed() -> None:
             last_active_date=datetime.utcnow(),
             gems=500,
             avatar_color="blue",
+            # Backdated so the profile's "Joined" line reads as a real history
+            # rather than "joined today" on every fresh seed.
+            created_at=datetime.utcnow() - timedelta(days=96),
+            top_3_finishes=2,
         )
         db.add(user)
         db.flush()

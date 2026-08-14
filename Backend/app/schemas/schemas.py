@@ -59,6 +59,15 @@ class UserResponse(UserBase):
     # frontend, so the avatar follows the active theme.
     avatar_color: str = "blue"
 
+    # Profile detail. The league trio is resolved from users.league through
+    # leaderboard_service.LEAGUES rather than stored three times — the row
+    # holds only the code, and the title/icon are presentation for it.
+    created_at: Optional[datetime] = None
+    top_3_finishes: int = 0
+    league_code: str = "bronze"
+    league_title: str = "Bronze League"
+    league_icon: str = "🥉"
+
     # Heart economy, sent so the frontend never has to hardcode the rules.
     # seconds_until_next_heart is None when hearts are already full.
     max_hearts: int
