@@ -1,10 +1,11 @@
 # Duolingo Clone
 
-### ▶ Live demo — **https://duolingo-clone-sanjuvemulas-projects.vercel.app**
+### ▶ Live demo — **https://duolingo-clone-eight-kappa.vercel.app**
 
-> **Please use the link above.** It always serves the latest build. An older, deployment-pinned
-> Vercel URL (`duolingo-clone-gsi2fcau4-…`) may be circulating; Vercel deployment URLs are
-> immutable snapshots, so that one still loads but renders an earlier version of the interface.
+> **Please use the link above.** It is the project's production domain and always serves the
+> latest build. An older, deployment-pinned Vercel URL (`duolingo-clone-gsi2fcau4-…`) may be
+> circulating; Vercel gives every individual deployment an immutable URL, so that one still
+> loads but renders an earlier version of the interface.
 >
 > The API is on Render's free tier and sleeps when idle, so **the very first request can take
 > up to a minute** while the container wakes. Subsequent loads are instant. If the path shows
