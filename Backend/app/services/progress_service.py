@@ -33,13 +33,21 @@ def complete_lesson(db: Session, user: User, lesson: Lesson) -> dict:
 
     progress = (
         db.query(UserProgress)
-        .filter(UserProgress.user_id == user.id, UserProgress.skill_id == skill.id)
+        .filter(
+            UserProgress.user_id == user.id, 
+            UserProgress.skill_id == skill.id
+            )
         .first()
     )
     if progress is None:
         # Shouldn't happen in practice — every skill gets a UserProgress
         # row at seed time — but guard rather than 500 if it ever does.
-        progress = UserProgress(user_id=user.id, skill_id=skill.id, status="available", crowns=0)
+        progress = UserProgress(
+            user_id=user.id,
+            skill_id=skill.id, 
+            status="available", 
+            crowns=0
+            )
         db.add(progress)
 
     progress.crowns = min(progress.crowns + 1, total_lessons_in_skill)
@@ -107,7 +115,9 @@ def _unlock_next_skill(db: Session, user: User, completed_skill: Skill) -> int |
     )
 
     try:
+        # enumerate - gives us both the index and the object:
         current_index = next(i for i, s in enumerate(course_skills) if s.id == completed_skill.id)
+        # finds the index of the completed skill in course_skills
     except StopIteration:
         return None
 

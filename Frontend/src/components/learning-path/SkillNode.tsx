@@ -17,8 +17,8 @@ interface SkillNodeProps {
 /** Renders one skill's lock/available/completed state and progress ring.
  *
  * Clicking an available or completed skill navigates to the lesson player
- * at /lesson/{lesson_id}, where lesson_id is the first lesson (by order)
- * for that skill — resolved server-side in the skill-tree response.
+ * at /lesson/{lesson_id}, where lesson_id is the learner's next unfinished
+ * lesson for that skill — resolved server-side in the skill-tree response.
  * Locked nodes get a shake animation for click feedback. */
 export function SkillNode({ skill, offsetX }: SkillNodeProps) {
   const [shaking, setShaking] = useState(false);

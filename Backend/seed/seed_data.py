@@ -55,7 +55,7 @@ from app.models.models import (
 # on every request. Rebuilding is acceptable *only* because every row in this
 # database is demo data that the seed script itself authored — there is no
 # learner-authored content to lose. A real app would run Alembic here instead.
-CONTENT_VERSION = "3"
+CONTENT_VERSION = "4"
 
 CONTENT_VERSION_KEY = "content_version"
 
@@ -591,10 +591,16 @@ def seed() -> None:
                 return UserProgress(user_id=user.id, skill_id=skill.id,
                                     status="completed", crowns=lesson_count)
             if index == 1:
-                # One of two lessons done — gives the progress ring a real
-                # partial fraction to draw, not just full or empty.
+                # Deliberately 0 crowns, not 1. The skill tree routes a node
+                # to the learner's next unfinished lesson (crowns == lessons
+                # done), so seeding the frontier skill at 0 lets a reviewer
+                # walk the whole shape of a skill: play lesson 1, watch the
+                # ring go half-full, tap the same node again and get lesson 2,
+                # which completes the skill and unlocks the next one. Seeding
+                # it at 1 would drop them straight into the last lesson and
+                # hide that the skill has two.
                 return UserProgress(user_id=user.id, skill_id=skill.id,
-                                    status="available", crowns=1)
+                                    status="available", crowns=0)
             return UserProgress(user_id=user.id, skill_id=skill.id,
                                 status="locked", crowns=0)
 
@@ -620,7 +626,7 @@ def seed() -> None:
         print(
             f"  learner -> id={user.id}, email={user.email}, "
             f"{user.xp_total} XP, {user.streak}-day streak, "
-            "skill 1 completed / skill 2 in progress"
+            "skill 1 completed / skill 2 unlocked at lesson 1"
         )
 
     finally:

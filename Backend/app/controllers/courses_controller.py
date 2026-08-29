@@ -48,7 +48,18 @@ def get_skill_tree(db: Session, course_id: int, user: User) -> CourseWithUnits:
         skills_out: list[SkillWithProgress] = []
         for skill in sorted(unit.skills, key=lambda s: s.order):
             progress = progress_by_skill_id.get(skill.id)
-            first_lesson = min(skill.lessons, key=lambda l: l.order) if skill.lessons else None
+            # Route the node to the learner's next unfinished lesson, not
+            # always lesson 1. The schema only tracks progress per skill
+            # (UserProgress.crowns), so "lessons finished so far" == crowns:
+            # 0 crowns -> lesson 1, 1 crown -> lesson 2, and a fully
+            # completed skill clamps to its last lesson for replay.
+            ordered_lessons = sorted(skill.lessons, key=lambda l: l.order)
+            crowns = progress.crowns if progress else 0
+            next_lesson = (
+                ordered_lessons[min(crowns, len(ordered_lessons) - 1)]
+                if ordered_lessons
+                else None
+            )
             skills_out.append(
                 SkillWithProgress(
                     id=skill.id,
@@ -59,7 +70,7 @@ def get_skill_tree(db: Session, course_id: int, user: User) -> CourseWithUnits:
                     status=progress.status if progress else "locked",
                     crowns=progress.crowns if progress else 0,
                     lesson_count=len(skill.lessons),
-                    lesson_id=first_lesson.id if first_lesson else None,
+                    lesson_id=next_lesson.id if next_lesson else None,
                 )
             )
         units_out.append(
